@@ -16,7 +16,17 @@ const bodyStyle = {
 
 export default function SupportPage() {
   return (
-    <main style={{ minHeight: "100vh", background: "radial-gradient(circle at top, rgba(117,167,255,0.18), transparent 34%), #07111f", color: "white", padding: "32px 20px 64px" }}>
+    <main
+      style={{
+        minHeight: "100dvh",
+        height: "100dvh",
+        overflowY: "auto",
+        WebkitOverflowScrolling: "touch",
+        background: "radial-gradient(circle at top, rgba(117,167,255,0.18), transparent 34%), #07111f",
+        color: "white",
+        padding: "32px 20px 64px",
+      }}
+    >
       <div style={{ maxWidth: "780px", margin: "0 auto", display: "grid", gap: "18px" }}>
         <div style={{ display: "grid", gap: "10px", textAlign: "center", marginBottom: "8px" }}>
           <div style={{ letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.58)", fontSize: "0.78rem", fontWeight: 800 }}>VELLIN</div>
