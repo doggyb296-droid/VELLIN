@@ -1,0 +1,84 @@
+'use client';
+
+import { Capacitor, registerPlugin } from '@capacitor/core';
+
+export type DeviceUsageStatus = 'unknown' | 'requested' | 'granted' | 'skipped' | 'unsupported';
+
+export interface WeeklyUsageEntry {
+  packageName: string;
+  totalMs: number;
+}
+
+interface DeviceUsagePlugin {
+  getStatus(): Promise<{ status: DeviceUsageStatus }>;
+  requestAccess(): Promise<{ status: DeviceUsageStatus }>;
+  getWeeklyUsage(options: { packages: string[] }): Promise<{ status: DeviceUsageStatus; usage: WeeklyUsageEntry[] }>;
+}
+
+const DeviceUsage = registerPlugin<DeviceUsagePlugin>('DeviceUsage');
+
+export const DEVICE_USAGE_PACKAGES: Record<string, string[]> = {
+  Instagram: ['com.instagram.android'],
+  TikTok: ['com.zhiliaoapp.musically'],
+  X: ['com.twitter.android'],
+  YouTube: ['com.google.android.youtube'],
+  Facebook: ['com.facebook.katana'],
+  Netflix: ['com.netflix.mediaclient'],
+  WhatsApp: ['com.whatsapp'],
+  Snapchat: ['com.snapchat.android'],
+  Reddit: ['com.reddit.frontpage'],
+  Pinterest: ['com.pinterest'],
+};
+
+export const canUseNativeDeviceUsage = () => Capacitor.getPlatform() === 'android';
+
+export const readDeviceUsageStatus = async (): Promise<DeviceUsageStatus> => {
+  if (!canUseNativeDeviceUsage()) return 'unsupported';
+  try {
+    const result = await DeviceUsage.getStatus();
+    return result.status;
+  } catch {
+    return 'unsupported';
+  }
+};
+
+export const requestDeviceUsagePermission = async (): Promise<DeviceUsageStatus> => {
+  if (!canUseNativeDeviceUsage()) return 'unsupported';
+  try {
+    const result = await DeviceUsage.requestAccess();
+    return result.status;
+  } catch {
+    return 'unsupported';
+  }
+};
+
+export const getWeeklyUsageForLabels = async (labels: string[]) => {
+  if (!canUseNativeDeviceUsage()) {
+    return { status: 'unsupported' as DeviceUsageStatus, usageByLabel: {} as Record<string, number> };
+  }
+
+  const labelPackagePairs = labels.flatMap((label) =>
+    (DEVICE_USAGE_PACKAGES[label] || []).map((pkg) => ({ label, pkg })),
+  );
+  const uniquePackages = Array.from(new Set(labelPackagePairs.map((pair) => pair.pkg)));
+
+  try {
+    const result = await DeviceUsage.getWeeklyUsage({ packages: uniquePackages });
+    const usageByLabel = labels.reduce<Record<string, number>>((acc, label) => {
+      acc[label] = 0;
+      return acc;
+    }, {});
+
+    result.usage.forEach((entry) => {
+      labelPackagePairs.forEach((pair) => {
+        if (pair.pkg === entry.packageName) {
+          usageByLabel[pair.label] = (usageByLabel[pair.label] || 0) + entry.totalMs;
+        }
+      });
+    });
+
+    return { status: result.status, usageByLabel };
+  } catch {
+    return { status: 'unsupported' as DeviceUsageStatus, usageByLabel: {} as Record<string, number> };
+  }
+};
