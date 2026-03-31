@@ -443,6 +443,16 @@ body {
   padding-bottom: max(44px, calc(env(safe-area-inset-bottom, 0px) + 36px)) !important;
 }
 
+.onboarding-static-card {
+  transition: none !important;
+  animation: none !important;
+}
+
+.onboarding-static-card:hover,
+.onboarding-static-card:active {
+  transform: none !important;
+}
+
 .pro-offer-container {
   overflow: hidden !important;
   overflow-x: hidden;
@@ -3080,7 +3090,7 @@ body {
     rgba(255, 255, 255, 0.12);
   border-color: rgba(184, 240, 140, 0.56);
   box-shadow: 0 14px 34px rgba(0,0,0,0.24), 0 0 0 2px rgba(184, 240, 140, 0.22), inset 0 0 0 1px rgba(255,255,255,0.16);
-  transform: translateY(-2px);
+  transform: none;
 }
 
 .selectable-card img {

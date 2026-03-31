@@ -1347,17 +1347,19 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       className="onboarding-step onboarding-step-shell"
       style={{ padding: '32px 24px 56px', minHeight: '100%', display: 'flex', flexDirection: 'column', textAlign: 'center' }}
     >
-      <motion.div
-        initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.35, ease: 'easeOut' }}
-        style={{ display: 'flex', justifyContent: 'center', marginBottom: '28px' }}
-      >
-        <BrandLockup subtitle="Quiet the noise. Keep the signal." />
-      </motion.div>
-      <h1 className="onboarding-step-title" style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '16px', letterSpacing: '-0.03em' }}>{getUiString(languageRegion, 'welcomeTitle')}</h1>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '32px', lineHeight: 1.6 }}>{getUiString(languageRegion, 'welcomeSubtitle')}</p>
-      <div className="onboarding-step-actions" style={{ marginTop: 'auto' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <motion.div
+          initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          style={{ display: 'flex', justifyContent: 'center', marginBottom: '28px' }}
+        >
+          <BrandLockup subtitle="Quiet the noise. Keep the signal." />
+        </motion.div>
+        <h1 className="onboarding-step-title" style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '16px', letterSpacing: '-0.03em' }}>{getUiString(languageRegion, 'welcomeTitle')}</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '22px', lineHeight: 1.6 }}>{getUiString(languageRegion, 'welcomeSubtitle')}</p>
+      </div>
+      <div className="onboarding-step-actions">
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
         </button>
@@ -1369,7 +1371,6 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
 const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
-  const reduceMotion = useReducedMotion();
   
   const questions = [
     { q: "When do you feel most compelled to scroll?", options: ["Waking Up", "During Work Breaks", "Late at Night", "When Stressed"] },
@@ -1388,40 +1389,26 @@ const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
   };
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1 }}
-      className="onboarding-step-shell"
-      style={{ padding: '32px 24px 56px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}
-    >
+    <div className="onboarding-step-shell" style={{ padding: '32px 24px 56px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
       <div className="progress-dots" style={{ marginBottom: '40px', justifyContent: 'flex-start' }}>
         {questions.map((_, i) => (
           <div key={i} className={`dot ${i === step ? 'active' : ''}`}></div>
         ))}
       </div>
       <h2 className="onboarding-step-title" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '24px', letterSpacing: '-0.02em' }}>{questions[step].q}</h2>
-      <motion.div
-        style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
-        initial={reduceMotion ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.18 }}
-        key={step}
-      >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }} key={step}>
         {questions[step].options.map((opt, i) => (
-          <motion.button
-            initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.16, delay: reduceMotion ? 0 : i * 0.03 }}
+          <button
             key={i}
-            className="glass-card interactive onboarding-choice"
+            className="glass-card onboarding-choice onboarding-static-card"
             style={{ padding: '18px 20px', textAlign: 'left', color: 'var(--text-main)', fontSize: '1rem', border: '1px solid var(--card-border)' }}
             onClick={() => handleOption(opt)}
           >
             {opt}
-          </motion.button>
+          </button>
         ))}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 
@@ -1453,9 +1440,14 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
         initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.24, ease: 'easeOut' }}
-        style={{ display: 'inline-block', padding: '16px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', marginBottom: '24px' }}
+        style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginBottom: '24px' }}
       >
-        <CheckCircle2 size={48} color="var(--accent-success)" />
+        <div style={{ display: 'grid', placeItems: 'center', width: '72px', height: '72px', padding: '16px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(184, 240, 140, 0.28)' }}>
+          <CheckCircle2 size={40} color="var(--accent-success)" />
+        </div>
+        <div style={{ fontSize: '0.78rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 800, color: 'var(--accent-success)' }}>
+          Verified Setup
+        </div>
       </motion.div>
       <h2 className="onboarding-step-title" style={{ fontSize: '2rem', fontWeight: 800, margin: '0 0 16px', letterSpacing: '-0.02em' }}>Protocol Active</h2>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '28px' }}>Based on your triggers, we've designed your structure.</p>
@@ -1711,15 +1703,19 @@ const AppSelectionStep = ({ onNext, languageRegion }: { onNext: (apps: string[])
        <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '12px', letterSpacing: '-0.02em' }}>{getUiString(languageRegion, 'distractionsTitle')}</h2>
        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>{getUiString(languageRegion, 'distractionsSubtitle')}</p>
        
-       <motion.div className="logo-grid" style={{ marginBottom: '32px' }} variants={staggerContainer} initial="hidden" animate="show">
+      <div className="logo-grid" style={{ marginBottom: '32px' }}>
         {['Instagram', 'TikTok', 'X', 'YouTube', 'Facebook', 'Netflix'].map((app, index) => (
-          <motion.div variants={fadeUp} key={`${app || 'selected-app'}-${index}`} className={`glass-card selectable-card interactive ${selected.includes(app) ? 'selected' : ''}`} onClick={() => toggle(app)}>
+          <div
+            key={`${app || 'selected-app'}-${index}`}
+            className={`glass-card selectable-card onboarding-static-card ${selected.includes(app) ? 'selected' : ''}`}
+            onClick={() => toggle(app)}
+          >
               {selected.includes(app) && <div className="selectable-check-badge"><CheckCircle2 size={14} /></div>}
               <img src={APP_LOGOS[app]} alt={app} />
               <div style={{ fontSize: '0.75rem', fontWeight: 600, color: selected.includes(app) ? 'var(--text-main)' : 'var(--text-secondary)' }}>{app}</div>
-           </motion.div>
-         ))}
-       </motion.div>
+           </div>
+        ))}
+      </div>
 
        <button className="btn-secondary" style={{ width: '100%', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => setShowAllApps(true)}>
           <Search size={16} /> {getUiString(languageRegion, 'browseApps')}
@@ -2856,13 +2852,22 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
   const selectedCount = Math.max(1, distractions.length);
   const distractionLabel = distractions.length ? distractions.join(', ') : 'your chosen distractions';
   const hasConnectedUsageData = deviceUsageAccessStatus === 'granted';
+  const deviceUsageSupported = canUseNativeDeviceUsage();
   const topUsageEntry = Object.entries(weeklyBlockedUsageByApp).sort((a, b) => b[1] - a[1])[0];
   const topUsageText = topUsageEntry
     ? `${topUsageEntry[0]} took ${Math.round(topUsageEntry[1] / 60000)} minutes last week.`
-    : 'We are waiting for real weekly app-usage data to populate here.';
+    : deviceUsageSupported
+      ? 'We are waiting for real weekly app-usage data to populate here.'
+      : 'Mobile web cannot read Screen Time or Usage Access directly, so VELLIN is using your setup answers here for now.';
 
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center' }}>
+    <motion.div
+      initial={{ opacity: 0, x: 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -12 }}
+      className="onboarding-step-shell"
+      style={{ padding: '32px 24px 56px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}
+    >
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
          <div style={{ width: '64px', height: '64px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '50%', margin: '0 auto 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Activity color="var(--accent-danger)" size={32} />
@@ -2878,7 +2883,9 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
          <div style={{ fontSize: '1rem', marginTop: '16px', color: 'var(--text-secondary)' }}>
            {hasConnectedUsageData
              ? topUsageText
-             : 'Connect device usage access to replace this setup summary with your real last-week app time from Screen Time or Usage Access.'}
+             : deviceUsageSupported
+               ? 'Connect device usage access to replace this setup summary with your real last-week app time from Screen Time or Usage Access.'
+               : 'On the website, VELLIN cannot read Screen Time directly. The native iPhone and Android app can ask for that before deeper reports.'}
          </div>
       </div>
 
@@ -2891,9 +2898,11 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
          </div>
       </div>
 
-      <button className="btn-primary" style={{ width: '100%', padding: '18px', fontSize: '1.1rem', marginTop: 'auto', marginBottom: '40px' }} onClick={onNext}>
-        It's time to change.
-      </button>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto' }}>
+        <button className="btn-primary onboarding-step-cta" style={{ width: '100%', padding: '18px', fontSize: '1.05rem' }} onClick={onNext}>
+          It's time to change.
+        </button>
+      </div>
     </motion.div>
   );
 };
