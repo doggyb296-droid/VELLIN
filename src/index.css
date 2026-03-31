@@ -487,6 +487,20 @@ body {
   box-shadow: 0 -14px 28px rgba(0, 0, 0, 0.22);
 }
 
+@media (max-width: 640px) {
+  .pro-offer-topbar {
+    padding: max(12px, env(safe-area-inset-top, 0px)) 16px 10px;
+  }
+
+  .pro-offer-content {
+    padding: 0 16px 16px;
+  }
+
+  .pro-offer-actions {
+    padding: 12px 16px max(16px, env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .auth-confirm-card {
   padding: 18px;
   border-radius: 22px;
@@ -3336,6 +3350,8 @@ body {
   padding: 18px;
   display: grid;
   gap: 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   z-index: 40;
   background:
     radial-gradient(circle at 12% 16%, rgba(184, 240, 140, 0.12), transparent 24%),
@@ -3344,6 +3360,26 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.46);
   backdrop-filter: blur(18px);
+}
+
+@media (max-width: 640px) {
+  .profile-settings-menu {
+    width: min(calc(100vw - 16px), 420px);
+    max-height: min(88dvh, 720px);
+    padding: 16px;
+  }
+
+  .profile-membership-card {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 16px;
+  }
+
+  .membership-region-row,
+  .membership-manage-row {
+    width: 100%;
+    max-width: none;
+  }
 }
 
 .profile-settings-scrim {
