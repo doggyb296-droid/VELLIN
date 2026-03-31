@@ -438,6 +438,8 @@ body {
   justify-content: flex-start !important;
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: max(44px, calc(env(safe-area-inset-bottom, 0px) + 36px)) !important;
 }
 
@@ -534,6 +536,27 @@ body {
 }
 
 @media (max-width: 520px) {
+  .onboarding-step-shell {
+    padding-top: max(20px, env(safe-area-inset-top, 0px) + 12px) !important;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+    padding-bottom: max(34px, calc(env(safe-area-inset-bottom, 0px) + 28px)) !important;
+  }
+
+  .onboarding-step-title {
+    font-size: 1.65rem !important;
+    line-height: 1.15;
+  }
+
+  .onboarding-step-cta {
+    min-height: 54px;
+  }
+
+  .onboarding-choice {
+    padding: 16px 18px !important;
+    font-size: 0.98rem !important;
+  }
+
   .auth-screen {
     justify-content: flex-start;
     padding-top: max(20px, env(safe-area-inset-top, 0px) + 12px);
@@ -3090,6 +3113,17 @@ body {
   background: var(--text-main);
   width: 24px;
   border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive,
+  .glass-card,
+  .btn-primary,
+  .btn-secondary,
+  .dot {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 /* Command Menu (Cmd+K) Styles */

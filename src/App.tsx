@@ -26,7 +26,7 @@ import {
   CreditCard,
   Pencil
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { createClient as createSupabaseBrowserClient } from './lib/supabase/client';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -1336,22 +1336,40 @@ const getAuthAvatarUrl = (user: SupabaseUser | null) => {
 // --- Onboarding Components ---
 
 
-const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageRegion: string }) => (
-  <motion.div initial={false} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="onboarding-step" style={{ padding: '40px', minHeight: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
-    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8, ease: "easeOut" }} style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
-      <BrandLockup subtitle="Quiet the noise. Keep the signal." />
+const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageRegion: string }) => {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      initial={false}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="onboarding-step onboarding-step-shell"
+      style={{ padding: '32px 24px 56px', minHeight: '100%', display: 'flex', flexDirection: 'column', textAlign: 'center' }}
+    >
+      <motion.div
+        initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        style={{ display: 'flex', justifyContent: 'center', marginBottom: '28px' }}
+      >
+        <BrandLockup subtitle="Quiet the noise. Keep the signal." />
+      </motion.div>
+      <h1 className="onboarding-step-title" style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '16px', letterSpacing: '-0.03em' }}>{getUiString(languageRegion, 'welcomeTitle')}</h1>
+      <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '32px', lineHeight: 1.6 }}>{getUiString(languageRegion, 'welcomeSubtitle')}</p>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto' }}>
+        <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
+        </button>
+      </div>
     </motion.div>
-    <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '16px', letterSpacing: '-0.03em' }}>{getUiString(languageRegion, 'welcomeTitle')}</h1>
-    <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '48px', lineHeight: 1.6 }}>{getUiString(languageRegion, 'welcomeSubtitle')}</p>
-    <button className="btn-primary" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-      {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
-    </button>
-  </motion.div>
-);
+  );
+};
 
 const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const reduceMotion = useReducedMotion();
   
   const questions = [
     { q: "When do you feel most compelled to scroll?", options: ["Waking Up", "During Work Breaks", "Late at Night", "When Stressed"] },
@@ -1370,16 +1388,35 @@ const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
   };
 
   return (
-    <motion.div initial={false} animate={{ opacity: 1 }} style={{ padding: '60px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100%' }}>
+    <motion.div
+      initial={false}
+      animate={{ opacity: 1 }}
+      className="onboarding-step-shell"
+      style={{ padding: '32px 24px 56px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}
+    >
       <div className="progress-dots" style={{ marginBottom: '40px', justifyContent: 'flex-start' }}>
         {questions.map((_, i) => (
           <div key={i} className={`dot ${i === step ? 'active' : ''}`}></div>
         ))}
       </div>
-      <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '32px', letterSpacing: '-0.02em' }}>{questions[step].q}</h2>
-      <motion.div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }} variants={staggerContainer} initial="hidden" animate="show" key={step}>
+      <h2 className="onboarding-step-title" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '24px', letterSpacing: '-0.02em' }}>{questions[step].q}</h2>
+      <motion.div
+        style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+        initial={reduceMotion ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.18 }}
+        key={step}
+      >
         {questions[step].options.map((opt, i) => (
-          <motion.button variants={fadeUp} key={i} className="glass-card interactive" style={{ padding: '20px 24px', textAlign: 'left', color: 'var(--text-main)', fontSize: '1rem', border: '1px solid var(--card-border)' }} onClick={() => handleOption(opt)}>
+          <motion.button
+            initial={reduceMotion ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.16, delay: reduceMotion ? 0 : i * 0.03 }}
+            key={i}
+            className="glass-card interactive onboarding-choice"
+            style={{ padding: '18px 20px', textAlign: 'left', color: 'var(--text-main)', fontSize: '1rem', border: '1px solid var(--card-border)' }}
+            onClick={() => handleOption(opt)}
+          >
             {opt}
           </motion.button>
         ))}
@@ -1390,6 +1427,7 @@ const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
 
 const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | null, onNext: () => void }) => {
   const trigger = surveyData?.[0] || 'Waking Up';
+  const reduceMotion = useReducedMotion();
   let title = 'Friction Injection Protocol';
   let desc = 'A structured plan to rebuild your attention span by injecting mindful friction into habitual checking.';
   let points = [
@@ -1405,12 +1443,22 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
   }
 
   return (
-    <motion.div initial={false} animate={{ opacity: 1, y: 0 }} style={{ padding: '60px 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100%' }}>
-      <motion.div style={{ display: 'inline-block', padding: '16px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', marginBottom: '24px' }}>
+    <motion.div
+      initial={false}
+      animate={{ opacity: 1, y: 0 }}
+      className="onboarding-step-shell"
+      style={{ padding: '32px 24px 56px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100%' }}
+    >
+      <motion.div
+        initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.24, ease: 'easeOut' }}
+        style={{ display: 'inline-block', padding: '16px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', marginBottom: '24px' }}
+      >
         <CheckCircle2 size={48} color="var(--accent-success)" />
       </motion.div>
-      <h2 style={{ fontSize: '2rem', fontWeight: 800, margin: '0 0 16px', letterSpacing: '-0.02em' }}>Protocol Active</h2>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '40px' }}>Based on your triggers, we've designed your structure.</p>
+      <h2 className="onboarding-step-title" style={{ fontSize: '2rem', fontWeight: 800, margin: '0 0 16px', letterSpacing: '-0.02em' }}>Protocol Active</h2>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '28px' }}>Based on your triggers, we've designed your structure.</p>
       
       <div className="glass-card" style={{ padding: '32px', textAlign: 'left', marginBottom: '40px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(6, 182, 212, 0.05))', borderColor: 'rgba(139, 92, 246, 0.2)' }}>
          <h3 className="text-gradient" style={{ fontSize: '1.2rem', marginBottom: '8px' }}>{title}</h3>
@@ -1419,7 +1467,9 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
            {points.map((pt, i) => <li key={i} style={{ color: 'var(--text-secondary)' }}><span style={{ color: 'var(--text-main)' }}>{pt}</span></li>)}
          </ul>
       </div>
-      <button className="btn-primary" onClick={onNext} style={{ width: '100%' }}>Continue</button>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto' }}>
+        <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%' }}>Continue</button>
+      </div>
     </motion.div>
   );
 };
