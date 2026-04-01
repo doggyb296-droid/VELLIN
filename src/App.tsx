@@ -1346,19 +1346,19 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '32px 24px 56px', minHeight: '100%', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'flex-start' }}
+      style={{ padding: '44px 24px 40px', minHeight: '100%', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'flex-start' }}
     >
-      <div className="welcome-step-copy" style={{ display: 'grid', gap: '18px' }}>
+      <div className="welcome-step-copy" style={{ display: 'grid', gap: '14px' }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}
-          style={{ display: 'flex', justifyContent: 'center', marginBottom: '28px' }}
+          style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}
         >
           <BrandLockup subtitle="Quiet the noise. Keep the signal." />
         </motion.div>
-        <h1 className="onboarding-step-title" style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '16px', letterSpacing: '-0.03em' }}>{getUiString(languageRegion, 'welcomeTitle')}</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '22px', lineHeight: 1.6 }}>{getUiString(languageRegion, 'welcomeSubtitle')}</p>
+        <h1 className="onboarding-step-title" style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '6px', letterSpacing: '-0.03em' }}>{getUiString(languageRegion, 'welcomeTitle')}</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '8px', lineHeight: 1.6 }}>{getUiString(languageRegion, 'welcomeSubtitle')}</p>
         <div className="welcome-highlight-grid">
           {welcomeHighlights.map((item, index) => (
             <div key={`${item}-${index}`} className="glass-card welcome-highlight-card">
@@ -1367,7 +1367,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
           ))}
         </div>
       </div>
-      <div className="onboarding-step-actions" style={{ marginTop: '22px' }}>
+      <div className="onboarding-step-actions" style={{ marginTop: '18px' }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
         </button>
@@ -1551,8 +1551,8 @@ const AuthStep = ({
   };
 
   return (
-    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '28px 20px 52px' }}>
-      <div style={{ marginBottom: '28px' }}>
+    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '18px 16px 28px' }}>
+      <div className="auth-brand-row">
         <BrandLockup subtitle="Focus infrastructure for real life." compact />
       </div>
       <div className="glass-card auth-shell">
@@ -4759,6 +4759,80 @@ export default function App() {
     setOnboardingStep('completed');
   }, []);
 
+  const resetToFreshSetup = useCallback(() => {
+    setShowCmd(false);
+    setShowProPlan(false);
+    setShowProOffer(false);
+    setShowBlockScreen(false);
+    setShowRecap(false);
+    setRecentUnlocks([]);
+    setCelebratingAchievement(null);
+    setActiveTab('home');
+    setIsFocusing(false);
+    setFocusSeconds(0);
+    focusSecondsRef.current = 0;
+    lastBreakReminderAtRef.current = null;
+    setHasCompletedOnboarding(false);
+    setIsRetakingSetup(false);
+    setUsageAccessStandalone(false);
+    setOnboardingStep('welcome');
+    setAuthNotice(null);
+    setAuthNoticeTone('info');
+    setPendingConfirmationEmail(null);
+    setShowPasswordRecoveryForm(false);
+    setIsPasswordResetting(false);
+    setSocialUsername('');
+    setUserData({ ...DEFAULT_USER_DATA });
+    setFocusScore(89);
+    setSessions(DEFAULT_SESSIONS);
+    setTasks(createDefaultTasks());
+    setCompletedTaskIds([]);
+    setTaskCompletions(0);
+    setDailyGoalSeconds(2 * 60 * 60);
+    setDeviceUsageAccessStatus('unknown');
+    setNotificationsEnabled(true);
+    setSoundEnabled(false);
+    setBreakReminderMins(25);
+    setDailyGoalHits(0);
+    setLastGoalDate(null);
+    setBlockedCount(0);
+    setBlockedByApp({});
+    setWeeklyBlockedUsageByApp({});
+    setPhonePickups(0);
+    setFocusByDate({});
+    setTriggeredTaskStarts({});
+    setActiveAutoTaskId(null);
+    setProPlan(null);
+    setIsPro(false);
+    setHasUsedIntroTrial(false);
+    setIntroTrialStartedAt(null);
+    setMembershipAutoRenew(true);
+    setTotalSessions(0);
+    setTotalReclaimed(0);
+    setTodayReclaimed(0);
+    setLastReclaimedDate(null);
+    setStreak(0);
+    setMaxStreak(0);
+    setLastFocusDate(null);
+    setUnlockedAchievements([]);
+    lastFocusDateRef.current = null;
+    lastGoalDateRef.current = null;
+    lastReclaimedDateRef.current = null;
+    streakRef.current = 0;
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = null;
+    }
+    setToastMessage(null);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('vellin-state');
+      } catch {
+        // Ignore local storage cleanup failures.
+      }
+    }
+  }, []);
+
   const nextOnboarding = useCallback(() => {
     const shouldAskForUsageAccess = canUseNativeDeviceUsage() && deviceUsageAccessStatus === 'unknown';
     const usageAccessStep: OnboardingStep[] = shouldAskForUsageAccess ? ['usageAccess'] : [];
@@ -5117,27 +5191,12 @@ export default function App() {
   }, [completeOnboardingFlow, nextOnboarding, usageAccessStandalone]);
 
   const handleSignOut = useCallback(async () => {
-    setShowCmd(false);
-    setShowProPlan(false);
-    setShowProOffer(false);
-    setShowBlockScreen(false);
-    setActiveTab('home');
-    setHasCompletedOnboarding(false);
-    setUsageAccessStandalone(false);
-    setOnboardingStep('auth');
-    setAuthNotice(null);
-    setAuthNoticeTone('info');
-    setPendingConfirmationEmail(null);
-    setShowPasswordRecoveryForm(false);
     if (supabase) {
       await supabase.auth.signOut();
     }
     syncAuthUser(null);
-    setIsPro(false);
-    setProPlan(null);
-    setUserData(prev => ({ ...prev, name: '' }));
-    showToast('Signed out.');
-  }, [showToast, supabase, syncAuthUser]);
+    resetToFreshSetup();
+  }, [resetToFreshSetup, supabase, syncAuthUser]);
 
   const handleDeleteAccount = useCallback(async () => {
     const confirmed = typeof window === 'undefined'
@@ -5163,25 +5222,9 @@ export default function App() {
       await supabase.auth.signOut();
     }
 
-    setShowCmd(false);
-    setShowProPlan(false);
-    setShowProOffer(false);
-    setShowBlockScreen(false);
-    setActiveTab('home');
-    setHasCompletedOnboarding(false);
-    setUsageAccessStandalone(false);
-    setOnboardingStep('welcome');
-    setAuthNotice(null);
-    setAuthNoticeTone('info');
-    setPendingConfirmationEmail(null);
-    setShowPasswordRecoveryForm(false);
-    setSocialUsername('');
-    setIsPro(false);
-    setProPlan(null);
     syncAuthUser(null);
-    setUserData({ ...DEFAULT_USER_DATA });
-    showToast('Your account has been deleted.');
-  }, [showToast, supabase, syncAuthUser]);
+    resetToFreshSetup();
+  }, [resetToFreshSetup, showToast, supabase, syncAuthUser]);
 
   useEffect(() => {
     if (!supabase) return;

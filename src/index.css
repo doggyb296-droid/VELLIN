@@ -313,6 +313,10 @@ body {
   padding-bottom: max(34px, calc(env(safe-area-inset-bottom, 0px) + 26px));
 }
 
+.auth-brand-row {
+  margin-bottom: 14px;
+}
+
 .auth-copy h1 {
   font-size: 2rem;
   font-weight: 800;
@@ -323,6 +327,17 @@ body {
 .auth-copy p {
   color: var(--text-secondary);
   font-size: 0.95rem;
+  margin: 0;
+}
+
+.auth-shell form {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-shell form .auth-input,
+.auth-shell form .auth-password-row {
+  margin-bottom: 0;
 }
 
 .auth-mode-switch {
@@ -571,16 +586,25 @@ body {
 
 @media (max-width: 520px) {
   .welcome-step {
-    justify-content: space-between !important;
+    justify-content: flex-start !important;
+    gap: 18px;
+    padding-top: max(48px, env(safe-area-inset-top, 0px) + 32px) !important;
   }
 
   .welcome-step-copy {
     justify-content: flex-start !important;
-    padding-top: 6px;
+    gap: 12px !important;
+    padding-top: 0;
   }
 
   .welcome-highlight-grid {
-    margin-top: 14px;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .welcome-highlight-card {
+    padding: 13px 14px;
+    font-size: 0.88rem;
   }
 
   .onboarding-step-shell {
@@ -597,6 +621,10 @@ body {
 
   .welcome-step .onboarding-step-title {
     font-size: 2.05rem !important;
+  }
+
+  .welcome-step .onboarding-step-actions {
+    margin-top: 10px !important;
   }
 
   .onboarding-step-cta {
@@ -635,18 +663,80 @@ body {
 
   .auth-screen {
     justify-content: flex-start;
-    padding-top: max(20px, env(safe-area-inset-top, 0px) + 12px);
-    padding-bottom: max(42px, calc(env(safe-area-inset-bottom, 0px) + 32px));
+    padding-top: max(14px, env(safe-area-inset-top, 0px) + 8px);
+    padding-bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 20px));
   }
 
   .auth-shell {
-    padding: 20px;
-    gap: 14px;
-    margin-bottom: 18px;
+    padding: 18px;
+    gap: 12px;
+    margin-bottom: 10px;
   }
 
   .auth-copy h1 {
-    font-size: 1.7rem;
+    font-size: 1.55rem;
+    margin-bottom: 4px;
+  }
+
+  .auth-copy p {
+    font-size: 0.88rem;
+  }
+
+  .auth-brand-row {
+    margin-bottom: 10px;
+  }
+
+  .auth-mode-tab,
+  .auth-alt-action,
+  .auth-submit {
+    min-height: 48px;
+  }
+
+  .auth-input {
+    padding: 14px 16px;
+    font-size: 0.96rem;
+  }
+
+  .auth-helper {
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+}
+
+@media (max-width: 520px) and (max-height: 860px) {
+  .auth-screen {
+    padding-top: max(10px, env(safe-area-inset-top, 0px) + 6px);
+    padding-bottom: max(22px, calc(env(safe-area-inset-bottom, 0px) + 16px));
+  }
+
+  .auth-brand-row {
+    margin-bottom: 8px;
+  }
+
+  .auth-shell {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .auth-mode-switch {
+    gap: 6px;
+    padding: 5px;
+  }
+
+  .auth-mode-tab,
+  .auth-alt-action,
+  .auth-submit {
+    min-height: 46px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .auth-input {
+    padding: 13px 15px;
+  }
+
+  .auth-link-button {
+    padding-top: 0;
   }
 }
 
