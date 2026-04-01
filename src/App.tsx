@@ -5715,7 +5715,7 @@ export default function App() {
         <div className="noise-overlay" />
         <div className="ambient-glow" />
         <div className="ambient-glow secondary" />
-        <div className="app-container pro-offer-container" style={{ overflowY: 'auto' }}>
+        <div className="app-container onboarding-container">
           <AnimatePresence mode="wait">
             {onboardingStep === 'welcome' && <WelcomeStep key="welcome" onNext={nextOnboarding} languageRegion={resolvedPricingRegion} />}
             {onboardingStep === 'survey' && <SurveyStep key="survey" onNext={(data) => { setUserData({...userData, survey: data}); nextOnboarding(); }} />}

@@ -46,9 +46,11 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   letter-spacing: -0.01em;
   transition: background-color var(--transition-speed), color var(--transition-speed);
 }
@@ -109,11 +111,12 @@ body {
 .app-container {
   max-width: 500px;
   margin: 0 auto;
+  min-height: 100dvh;
   height: 100dvh;
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .app-main-shell {
@@ -487,9 +490,14 @@ body {
   transform: none !important;
 }
 
+.onboarding-container {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
 .pro-offer-container {
-  overflow: hidden !important;
-  overflow-x: hidden;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 
 .pro-offer-step-shell {
@@ -621,6 +629,10 @@ body {
 
   .welcome-step .onboarding-step-title {
     font-size: 2.05rem !important;
+  }
+
+  .welcome-step .brand-lockup {
+    justify-content: center;
   }
 
   .welcome-step .onboarding-step-actions {
