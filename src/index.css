@@ -465,15 +465,16 @@ body {
   flex-direction: column;
   position: relative;
   scrollbar-gutter: stable;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
-.pro-offer-topbar {
-  z-index: 8;
+.pro-offer-header-row {
   display: flex;
-  justify-content: flex-end;
-  padding: max(16px, env(safe-area-inset-top, 0px)) 24px 12px;
-  background: linear-gradient(180deg, rgba(7, 17, 31, 0.98) 0%, rgba(7, 17, 31, 0.82) 100%);
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .pro-offer-close {
@@ -482,32 +483,22 @@ body {
 }
 
 .pro-offer-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 4px 24px 20px;
+  padding: max(16px, env(safe-area-inset-top, 0px)) 24px max(24px, env(safe-area-inset-bottom, 0px) + 12px);
 }
 
 .pro-offer-actions {
-  z-index: 8;
   display: grid;
   gap: 12px;
-  padding: 14px 24px max(18px, env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(180deg, rgba(7, 17, 31, 0.78) 0%, rgba(7, 17, 31, 0.94) 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 -14px 28px rgba(0, 0, 0, 0.22);
+  margin-top: 8px;
 }
 
 @media (max-width: 640px) {
-  .pro-offer-topbar {
-    padding: max(12px, env(safe-area-inset-top, 0px)) 16px 10px;
+  .pro-offer-title {
+    font-size: 1.85rem !important;
   }
 
   .pro-offer-content {
-    padding: 0 16px 16px;
-  }
-
-  .pro-offer-actions {
-    padding: 12px 16px max(16px, env(safe-area-inset-bottom, 0px));
+    padding: max(14px, env(safe-area-inset-top, 0px)) 16px max(20px, env(safe-area-inset-bottom, 0px) + 10px);
   }
 }
 
@@ -560,6 +551,15 @@ body {
 }
 
 @media (max-width: 520px) {
+  .welcome-step {
+    justify-content: space-between !important;
+  }
+
+  .welcome-step-copy {
+    justify-content: flex-start !important;
+    padding-top: 6px;
+  }
+
   .onboarding-step-shell {
     padding-top: max(20px, env(safe-area-inset-top, 0px) + 12px) !important;
     padding-left: 18px !important;
@@ -568,7 +568,7 @@ body {
   }
 
   .onboarding-step-title {
-    font-size: 1.65rem !important;
+    font-size: 1.85rem !important;
     line-height: 1.15;
   }
 
@@ -579,6 +579,31 @@ body {
   .onboarding-choice {
     padding: 16px 18px !important;
     font-size: 0.98rem !important;
+  }
+
+  .task-controls.simple {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .task-field {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .task-selectors,
+  .task-edit-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .task-item {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .task-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .auth-screen {
@@ -2976,11 +3001,18 @@ body {
 
 @media (max-width: 640px) {
   .toast-container {
-    width: calc(100vw - 20px);
-    max-width: calc(100vw - 20px);
-    padding: 11px 14px;
-    border-radius: 18px;
-    font-size: 0.86rem;
+    top: auto;
+    bottom: max(12px, calc(env(safe-area-inset-bottom, 0px) + 8px));
+    width: min(300px, calc(100vw - 28px));
+    max-width: min(300px, calc(100vw - 28px));
+    padding: 10px 12px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    line-height: 1.3;
+  }
+
+  .toast-container svg {
+    display: none;
   }
 }
 

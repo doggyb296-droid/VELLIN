@@ -96,12 +96,6 @@ type AchievementMetric = 'focus_seconds' | 'streak_days' | 'sessions' | 'tasks' 
 type AchievementTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'legend' | 'mythic';
 type DeviceUsageAccessStatus = 'unknown' | 'requested' | 'granted' | 'skipped';
 type NotificationPermissionState = AppNotificationPermission;
-type NotificationPreviewMessage = {
-  title: string;
-  body: string;
-  timeLabel: string;
-};
-
 interface UserData {
   name: string;
   survey: string[] | null;
@@ -1344,10 +1338,10 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       initial={false}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="onboarding-step onboarding-step-shell"
+      className="onboarding-step onboarding-step-shell welcome-step"
       style={{ padding: '32px 24px 56px', minHeight: '100%', display: 'flex', flexDirection: 'column', textAlign: 'center' }}
     >
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div className="welcome-step-copy" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -1875,16 +1869,16 @@ const ProPlanOfferStep = ({
       animate={{ opacity: 1 }}
       className="pro-offer-step-shell"
     >
-      <div className="pro-offer-topbar">
-        <button className="btn-secondary pro-offer-close" onClick={onSkip} type="button" aria-label="Close Pro offer">
-          <X size={16} />
-        </button>
-      </div>
       <div className="pro-offer-content">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'center', paddingBottom: '20px' }}>
-        <div style={{ fontSize: '0.75rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 800 }}>VELLIN Pro</div>
-        <h2 style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '-0.03em' }}>{offerHeading}</h2>
-        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>{offerSubheading}</p>
+        <div className="pro-offer-header-row">
+          <div style={{ fontSize: '0.75rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 800 }}>VELLIN Pro</div>
+          <button className="btn-secondary pro-offer-close" onClick={onSkip} type="button" aria-label="Close Pro offer">
+            <X size={16} />
+          </button>
+        </div>
+        <h2 className="pro-offer-title" style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '-0.03em', margin: 0 }}>{offerHeading}</h2>
+        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>{offerSubheading}</p>
         <div className="glass-card" style={{ padding: '24px', textAlign: 'left', display: 'grid', gap: '14px', background: 'linear-gradient(135deg, rgba(184, 240, 140, 0.14), rgba(139, 212, 255, 0.1))', borderColor: 'rgba(184, 240, 140, 0.28)', borderRadius: '28px', boxShadow: '0 18px 50px rgba(5, 10, 24, 0.28)' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
             <div>
@@ -1924,20 +1918,20 @@ const ProPlanOfferStep = ({
                 : `${regionalCopy.onePerAccount}. Billing is not connected yet, so VELLIN is preparing the subscription wording now without charging real money today.`}
           </div>
         </div>
-        </div>
-      </div>
-      <div className="pro-offer-actions">
-        <button className="btn-primary" onClick={onUpgrade} style={{ width: '100%', padding: '18px' }}>
+        <div className="pro-offer-actions">
+          <button className="btn-primary" onClick={onUpgrade} style={{ width: '100%', padding: '18px' }}>
           {!isAuthenticated
             ? 'Create account to start trial'
             : canStartTrial
               ? regionalCopy.startTrial
               : `${regionalCopy.upgradeNow} · ${priceLabel}/month`}
-        </button>
-        <div style={{ color: 'var(--text-tertiary)', fontSize: '0.82rem', lineHeight: 1.5 }}>
-          Cancel anytime once billing goes live. Automatic monthly billing will only be turned on when the real subscription system is connected.
+          </button>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '0.82rem', lineHeight: 1.5 }}>
+            Cancel anytime once billing goes live. Automatic monthly billing will only be turned on when the real subscription system is connected.
+          </div>
+          <button className="btn-secondary" onClick={onSkip} style={{ width: '100%' }} type="button">Maybe Later</button>
         </div>
-        <button className="btn-secondary" onClick={onSkip} style={{ width: '100%' }} type="button">Maybe Later</button>
+        </div>
       </div>
     </motion.div>
   );
@@ -2907,7 +2901,7 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
   );
 };
 
-const Profile = ({ totalSessions, totalReclaimed, streak, isDarkMode, setIsDarkMode, currentLevel, totalXP, currentXPProgress, xpToNextLevel, dailyGoalHits, taskCompletions, dailyGoalSeconds, setDailyGoalSeconds, notificationsEnabled, onToggleNotifications, notificationPermissionLabel, soundEnabled, setSoundEnabled, breakReminderMins, setBreakReminderMins, distractions, onUpdateDistractions, isPro, onOpenProPlan, onRetakeSetup, onSignOut, onDeleteAccount, onOpenAuth, onLeaveGuestMode, onOpenUsageAccess, deviceUsageAccessStatus, accountEmail, username, onSaveUsername, avatarUrl, avatarInitials, isAuthenticated, proPricingRegion, onSetProPricingRegion, localizedProPrice, localizedProPriceNote, hasUsedIntroTrial, isIntroTrialActive, trialDaysLeft, membershipAutoRenew, onCancelMembershipRenewal, regionalCopy, notificationPreviewMessages }: { totalSessions: number, totalReclaimed: number, streak: number, isDarkMode: boolean, setIsDarkMode: (v: boolean) => void, currentLevel: number, totalXP: number, currentXPProgress: number, xpToNextLevel: number, dailyGoalHits: number, taskCompletions: number, dailyGoalSeconds: number, setDailyGoalSeconds: (v: number) => void, notificationsEnabled: boolean, onToggleNotifications: () => void, notificationPermissionLabel: string, soundEnabled: boolean, setSoundEnabled: (v: boolean) => void, breakReminderMins: number, setBreakReminderMins: (v: number) => void, distractions: string[], onUpdateDistractions: (next: string[]) => void, isPro: boolean, onOpenProPlan: () => void, onRetakeSetup: () => void, onSignOut: () => void, onDeleteAccount: () => void, onOpenAuth: () => void, onLeaveGuestMode: () => void, onOpenUsageAccess: () => void, deviceUsageAccessStatus: DeviceUsageAccessStatus, accountEmail: string, username: string, onSaveUsername: (nextUsername: string) => Promise<{ ok: boolean, message: string, username?: string }>, avatarUrl: string | null, avatarInitials: string, isAuthenticated: boolean, proPricingRegion: PricingRegionPreference, onSetProPricingRegion: (value: PricingRegionPreference) => void, localizedProPrice: string, localizedProPriceNote: string, hasUsedIntroTrial: boolean, isIntroTrialActive: boolean, trialDaysLeft: number, membershipAutoRenew: boolean, onCancelMembershipRenewal: () => void, regionalCopy: RegionalUiCopy, notificationPreviewMessages: NotificationPreviewMessage[] }) => {
+const Profile = ({ totalSessions, totalReclaimed, streak, isDarkMode, setIsDarkMode, currentLevel, totalXP, currentXPProgress, xpToNextLevel, dailyGoalHits, taskCompletions, dailyGoalSeconds, setDailyGoalSeconds, notificationsEnabled, onToggleNotifications, notificationPermissionLabel, soundEnabled, setSoundEnabled, breakReminderMins, setBreakReminderMins, distractions, onUpdateDistractions, isPro, onOpenProPlan, onRetakeSetup, onSignOut, onDeleteAccount, onOpenAuth, onLeaveGuestMode, onOpenUsageAccess, deviceUsageAccessStatus, accountEmail, username, onSaveUsername, avatarUrl, avatarInitials, isAuthenticated, proPricingRegion, onSetProPricingRegion, localizedProPrice, localizedProPriceNote, hasUsedIntroTrial, isIntroTrialActive, trialDaysLeft, membershipAutoRenew, onCancelMembershipRenewal, regionalCopy }: { totalSessions: number, totalReclaimed: number, streak: number, isDarkMode: boolean, setIsDarkMode: (v: boolean) => void, currentLevel: number, totalXP: number, currentXPProgress: number, xpToNextLevel: number, dailyGoalHits: number, taskCompletions: number, dailyGoalSeconds: number, setDailyGoalSeconds: (v: number) => void, notificationsEnabled: boolean, onToggleNotifications: () => void, notificationPermissionLabel: string, soundEnabled: boolean, setSoundEnabled: (v: boolean) => void, breakReminderMins: number, setBreakReminderMins: (v: number) => void, distractions: string[], onUpdateDistractions: (next: string[]) => void, isPro: boolean, onOpenProPlan: () => void, onRetakeSetup: () => void, onSignOut: () => void, onDeleteAccount: () => void, onOpenAuth: () => void, onLeaveGuestMode: () => void, onOpenUsageAccess: () => void, deviceUsageAccessStatus: DeviceUsageAccessStatus, accountEmail: string, username: string, onSaveUsername: (nextUsername: string) => Promise<{ ok: boolean, message: string, username?: string }>, avatarUrl: string | null, avatarInitials: string, isAuthenticated: boolean, proPricingRegion: PricingRegionPreference, onSetProPricingRegion: (value: PricingRegionPreference) => void, localizedProPrice: string, localizedProPriceNote: string, hasUsedIntroTrial: boolean, isIntroTrialActive: boolean, trialDaysLeft: number, membershipAutoRenew: boolean, onCancelMembershipRenewal: () => void, regionalCopy: RegionalUiCopy }) => {
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [usernameDraft, setUsernameDraft] = useState(username);
@@ -3094,7 +3088,7 @@ const Profile = ({ totalSessions, totalReclaimed, streak, isDarkMode, setIsDarkM
               <div className="membership-trial-note">{localizedProPriceNote}</div>
             </div>
             <div className="membership-region-row">
-              <label className="membership-region-label" htmlFor="pro-region-select">{regionalCopy.chooseRegion}</label>
+              <label className="membership-region-label" htmlFor="pro-region-select">App Language Region</label>
               <select
                 id="pro-region-select"
                 className="auth-input membership-region-select"
@@ -3105,7 +3099,7 @@ const Profile = ({ totalSessions, totalReclaimed, streak, isDarkMode, setIsDarkM
                   <option key={`${option.value || 'region-option'}-${index}`} value={option.value}>{option.label}</option>
                 ))}
               </select>
-              <div className="membership-manage-note">Changing region updates your app language and local copy. Billing stays locked to your detected store region.</div>
+              <div className="membership-manage-note">Changing this updates your app language and local copy. Pricing stays automatic and is estimated from the detected store region.</div>
             </div>
             {(isPro || isIntroTrialActive) && (
               <div className="membership-manage-row">
@@ -3160,23 +3154,6 @@ const Profile = ({ totalSessions, totalReclaimed, streak, isDarkMode, setIsDarkM
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', lineHeight: 1.6, marginTop: '-2px', marginBottom: '18px' }}>
               VELLIN can send three unique nudges around 9:15, 14:30, and 20:15 once the user allows notifications. Status: {notificationPermissionLabel}.
             </div>
-            <div className="notification-preview-stack">
-              <div className="notification-preview-label">Preview Of Today's Notifications</div>
-              {notificationPreviewMessages.map((message, index) => (
-                <div key={`${message.timeLabel}-${index}`} className="notification-preview-card">
-                  <div className="notification-preview-top">
-                    <div className="notification-preview-app">
-                      <span className="notification-preview-dot" />
-                      <span>VELLIN</span>
-                    </div>
-                    <span>{message.timeLabel}</span>
-                  </div>
-                  <div className="notification-preview-title">{message.title}</div>
-                  <div className="notification-preview-body">{message.body}</div>
-                </div>
-              ))}
-            </div>
-
             <div className="toggle-row">
                <div>
                   <div className="toggle-title">Sound Effects</div>
@@ -4615,25 +4592,6 @@ export default function App() {
         ? 'permission needed'
         : 'not available in this browser';
 
-  const notificationPreviewMessages = useMemo<NotificationPreviewMessage[]>(() => {
-    const formatter = new Intl.DateTimeFormat(undefined, {
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-
-    return DAILY_NUDGE_SLOTS.map((slot, index) => {
-      const sampleDate = new Date();
-      sampleDate.setHours(slot.hour, slot.minute, 0, 0);
-      const message = DAILY_NUDGE_LIBRARY[(sampleDate.getDay() + index * 2) % DAILY_NUDGE_LIBRARY.length];
-
-      return {
-        title: message.title,
-        body: message.body,
-        timeLabel: formatter.format(sampleDate),
-      };
-    });
-  }, []);
-
   const clearDailyNudgeTimers = useCallback(() => {
     dailyNudgeTimeoutsRef.current.forEach(clearTimeout);
     dailyNudgeTimeoutsRef.current = [];
@@ -4871,7 +4829,8 @@ export default function App() {
     }
     setUserData(prev => ({ ...prev, name: safeName }));
     nextOnboarding();
-    showToast('Account created. Check your inbox if email confirmation is enabled.');
+      setAuthNotice('Account created. Check your inbox if email confirmation is enabled.');
+      setAuthNoticeTone('success');
   }, [nextOnboarding, refreshAuthUserFromClient, showToast, supabase]);
 
   const handleLogin = useCallback(async ({ email, password }: { email: string, password: string }) => {
@@ -4936,8 +4895,7 @@ export default function App() {
     setUserData(prev => ({ ...prev, name: authName || prev.name || userEmail.split('@')[0] || '' }));
     completeOnboardingFlow();
     setActiveTab('home');
-    showToast('Welcome back.');
-  }, [completeOnboardingFlow, refreshAuthUserFromClient, showToast, supabase]);
+    }, [completeOnboardingFlow, refreshAuthUserFromClient, showToast, supabase]);
 
   const handleForgotPassword = useCallback(async (email: string) => {
     const safeEmail = normalizeEmail(email);
@@ -5015,8 +4973,7 @@ export default function App() {
     setAuthNoticeTone('info');
     setPendingConfirmationEmail(null);
     nextOnboarding();
-    showToast('Continuing without an account.');
-  }, [nextOnboarding, showToast]);
+    }, [nextOnboarding]);
 
   const openUsageAccessStep = useCallback(() => {
     if (!canUseNativeDeviceUsage()) {
@@ -5911,7 +5868,6 @@ export default function App() {
               membershipAutoRenew={membershipAutoRenew}
               onCancelMembershipRenewal={handleCancelMembershipRenewal}
               regionalCopy={regionalCopy}
-              notificationPreviewMessages={notificationPreviewMessages}
             />
           )}
           {activeTab === 'forecast' && (
