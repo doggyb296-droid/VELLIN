@@ -1339,10 +1339,10 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
     'Spot distraction spirals sooner',
     'Protect your best focus time',
   ];
-  const welcomeFlow = [
-    'Answer a few quick focus questions',
-    'Choose the apps that pull you off track',
-    'Get your first VELLIN setup in under a minute',
+  const welcomePromises = [
+    { label: 'Setup Time', value: 'Under 1 min' },
+    { label: 'Account', value: 'Optional' },
+    { label: 'Changes', value: 'Edit anytime' },
   ];
 
   return (
@@ -1372,15 +1372,17 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
           ))}
         </div>
         <div className="glass-card welcome-flow-card">
-          <div className="welcome-flow-title">What happens next</div>
-          <div className="welcome-flow-list">
-            {welcomeFlow.map((item, index) => (
-              <div key={`${item}-${index}`} className="welcome-flow-item">
-                <span className="welcome-flow-index">{index + 1}</span>
-                <span>{item}</span>
+          <div className="welcome-flow-title">Your first setup</div>
+          <div className="welcome-flow-hero">We will shape your first focus system around the apps and patterns that pull at you most.</div>
+          <div className="welcome-flow-list compact">
+            {welcomePromises.map((item, index) => (
+              <div key={`${item.label}-${index}`} className="welcome-flow-stat">
+                <span className="welcome-flow-stat-label">{item.label}</span>
+                <span className="welcome-flow-stat-value">{item.value}</span>
               </div>
             ))}
           </div>
+          <div className="welcome-flow-note">You can start in guest mode now and create an account later when you want sync and saved progress.</div>
         </div>
       </div>
       <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '16px' }}>

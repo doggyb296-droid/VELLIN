@@ -140,10 +140,14 @@ body {
 
 .welcome-flow-card {
   margin-top: 8px;
-  padding: 16px;
+  padding: 18px;
   text-align: left;
   display: grid;
   gap: 12px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(184, 240, 140, 0.14), transparent 30%),
+    radial-gradient(circle at 88% 14%, rgba(139, 212, 255, 0.16), transparent 28%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
 }
 
 .welcome-flow-title {
@@ -154,32 +158,53 @@ body {
   color: var(--text-tertiary);
 }
 
+.welcome-flow-hero {
+  color: var(--text-main);
+  font-size: 0.94rem;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
 .welcome-flow-list {
   display: grid;
   gap: 10px;
 }
 
-.welcome-flow-item {
-  display: grid;
-  grid-template-columns: 28px 1fr;
+.welcome-flow-list.compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  align-items: center;
-  color: var(--text-main);
-  font-size: 0.9rem;
-  font-weight: 600;
 }
 
-.welcome-flow-index {
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
+.welcome-flow-stat {
   display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, rgba(184, 240, 140, 0.24), rgba(139, 212, 255, 0.18));
-  border: 1px solid rgba(184, 240, 140, 0.22);
-  color: var(--text-main);
-  font-size: 0.82rem;
+  gap: 4px;
+  padding: 12px 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 0;
+}
+
+.welcome-flow-stat-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
   font-weight: 800;
+}
+
+.welcome-flow-stat-value {
+  color: var(--text-main);
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.welcome-flow-note {
+  color: var(--text-secondary);
+  font-size: 0.83rem;
+  line-height: 1.5;
+  margin-top: 2px;
 }
 
 .brand-lockup {
@@ -664,9 +689,24 @@ body {
     gap: 10px;
   }
 
-  .welcome-flow-item {
-    font-size: 0.86rem;
+  .welcome-flow-hero {
+    font-size: 0.88rem;
+  }
+
+  .welcome-flow-list.compact {
+    grid-template-columns: 1fr;
     gap: 8px;
+  }
+
+  .welcome-flow-stat {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+  }
+
+  .welcome-flow-stat-value {
+    font-size: 0.86rem;
   }
 
   .onboarding-step-shell {
