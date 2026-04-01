@@ -1339,11 +1339,6 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
     'Spot distraction spirals sooner',
     'Protect your best focus time',
   ];
-  const welcomePromises = [
-    { label: 'Setup Time', value: 'Under 1 min' },
-    { label: 'Account', value: 'Optional' },
-    { label: 'Changes', value: 'Edit anytime' },
-  ];
 
   return (
     <motion.div
@@ -1351,19 +1346,19 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '46px 24px 28px', minHeight: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'flex-start' }}
+      style={{ padding: '52px 24px 30px', minHeight: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'space-between' }}
     >
-      <div className="welcome-step-copy" style={{ display: 'grid', gap: '14px', flex: 1, alignContent: 'start' }}>
+      <div className="welcome-step-copy" style={{ display: 'grid', gap: '18px', flex: 1, alignContent: 'start' }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}
-          style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}
+          style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}
         >
           <BrandLockup subtitle="Quiet the noise. Keep the signal." />
         </motion.div>
-        <h1 className="onboarding-step-title" style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '6px', letterSpacing: '-0.03em' }}>{getUiString(languageRegion, 'welcomeTitle')}</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '8px', lineHeight: 1.6 }}>{getUiString(languageRegion, 'welcomeSubtitle')}</p>
+        <h1 className="onboarding-step-title" style={{ fontSize: '2.7rem', fontWeight: 800, marginBottom: '2px', letterSpacing: '-0.03em' }}>{getUiString(languageRegion, 'welcomeTitle')}</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.08rem', marginBottom: '6px', lineHeight: 1.65 }}>{getUiString(languageRegion, 'welcomeSubtitle')}</p>
         <div className="welcome-highlight-grid">
           {welcomeHighlights.map((item, index) => (
             <div key={`${item}-${index}`} className="glass-card welcome-highlight-card">
@@ -1371,21 +1366,8 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
             </div>
           ))}
         </div>
-        <div className="glass-card welcome-flow-card">
-          <div className="welcome-flow-title">Your first setup</div>
-          <div className="welcome-flow-hero">We will shape your first focus system around the apps and patterns that pull at you most.</div>
-          <div className="welcome-flow-list compact">
-            {welcomePromises.map((item, index) => (
-              <div key={`${item.label}-${index}`} className="welcome-flow-stat">
-                <span className="welcome-flow-stat-label">{item.label}</span>
-                <span className="welcome-flow-stat-value">{item.value}</span>
-              </div>
-            ))}
-          </div>
-          <div className="welcome-flow-note">You can start in guest mode now and create an account later when you want sync and saved progress.</div>
-        </div>
       </div>
-      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '16px' }}>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '18px' }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
         </button>
