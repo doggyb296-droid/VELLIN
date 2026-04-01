@@ -116,6 +116,25 @@ body {
   overflow: hidden;
 }
 
+.app-main-shell {
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px) + 10px);
+}
+
+.welcome-highlight-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.welcome-highlight-card {
+  padding: 14px 16px;
+  text-align: left;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .brand-lockup {
   display: inline-flex;
   align-items: center;
@@ -560,6 +579,10 @@ body {
     padding-top: 6px;
   }
 
+  .welcome-highlight-grid {
+    margin-top: 14px;
+  }
+
   .onboarding-step-shell {
     padding-top: max(20px, env(safe-area-inset-top, 0px) + 12px) !important;
     padding-left: 18px !important;
@@ -570,6 +593,10 @@ body {
   .onboarding-step-title {
     font-size: 1.85rem !important;
     line-height: 1.15;
+  }
+
+  .welcome-step .onboarding-step-title {
+    font-size: 2.05rem !important;
   }
 
   .onboarding-step-cta {
@@ -960,6 +987,10 @@ body {
   z-index: 100;
   padding-bottom: env(safe-area-inset-bottom, 20px);
   flex-shrink: 0;
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
 }
 
 .nav-item {
@@ -2851,6 +2882,32 @@ body {
   margin-bottom: 16px;
   outline: none;
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.auth-password-row {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.auth-input-password {
+  margin-bottom: 0;
+  padding-right: 52px;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
 }
 
 .auth-input:focus {

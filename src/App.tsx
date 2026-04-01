@@ -24,7 +24,9 @@ import {
   User,
   LogOut,
   CreditCard,
-  Pencil
+  Pencil,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { createClient as createSupabaseBrowserClient } from './lib/supabase/client';
@@ -1332,6 +1334,11 @@ const getAuthAvatarUrl = (user: SupabaseUser | null) => {
 
 const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageRegion: string }) => {
   const reduceMotion = useReducedMotion();
+  const welcomeHighlights = [
+    'Build calmer screen habits',
+    'Spot distraction spirals sooner',
+    'Protect your best focus time',
+  ];
 
   return (
     <motion.div
@@ -1352,6 +1359,13 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
         </motion.div>
         <h1 className="onboarding-step-title" style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '16px', letterSpacing: '-0.03em' }}>{getUiString(languageRegion, 'welcomeTitle')}</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '22px', lineHeight: 1.6 }}>{getUiString(languageRegion, 'welcomeSubtitle')}</p>
+        <div className="welcome-highlight-grid">
+          {welcomeHighlights.map((item, index) => (
+            <div key={`${item}-${index}`} className="glass-card welcome-highlight-card">
+              {item}
+            </div>
+          ))}
+        </div>
       </div>
       <div className="onboarding-step-actions">
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
@@ -1495,9 +1509,12 @@ const AuthStep = ({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPassword, setResetPassword] = useState('');
   const [resetPasswordConfirm, setResetPasswordConfirm] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showResetPasswordConfirm, setShowResetPasswordConfirm] = useState(false);
   const trimmedName = name.trim();
   const resolvedMode = pendingConfirmationEmail ? 'login' : mode;
   const resolvedEmail = pendingConfirmationEmail ?? email;
@@ -1593,26 +1610,36 @@ const AuthStep = ({
               Your reset link worked. Set a new password below, then use it the next time you log in.
             </div>
             <div className="auth-reset-stack">
-              <input
-                className="auth-input"
-                type="password"
-                placeholder="New Password"
-                value={resetPassword}
-                onChange={(e) => setResetPassword(e.target.value)}
-                autoComplete="new-password"
-                minLength={8}
-                maxLength={128}
-              />
-              <input
-                className="auth-input"
-                type="password"
-                placeholder="Confirm New Password"
-                value={resetPasswordConfirm}
-                onChange={(e) => setResetPasswordConfirm(e.target.value)}
-                autoComplete="new-password"
-                minLength={8}
-                maxLength={128}
-              />
+              <div className="auth-password-row">
+                <input
+                  className="auth-input auth-input-password"
+                  type={showResetPassword ? 'text' : 'password'}
+                  placeholder="New Password"
+                  value={resetPassword}
+                  onChange={(e) => setResetPassword(e.target.value)}
+                  autoComplete="new-password"
+                  minLength={8}
+                  maxLength={128}
+                />
+                <button className="auth-password-toggle" type="button" aria-label={showResetPassword ? 'Hide password' : 'Show password'} onClick={() => setShowResetPassword((prev) => !prev)}>
+                  {showResetPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <div className="auth-password-row">
+                <input
+                  className="auth-input auth-input-password"
+                  type={showResetPasswordConfirm ? 'text' : 'password'}
+                  placeholder="Confirm New Password"
+                  value={resetPasswordConfirm}
+                  onChange={(e) => setResetPasswordConfirm(e.target.value)}
+                  autoComplete="new-password"
+                  minLength={8}
+                  maxLength={128}
+                />
+                <button className="auth-password-toggle" type="button" aria-label={showResetPasswordConfirm ? 'Hide password confirmation' : 'Show password confirmation'} onClick={() => setShowResetPasswordConfirm((prev) => !prev)}>
+                  {showResetPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               <button
                 className="btn-primary auth-submit"
                 type="button"
@@ -1632,7 +1659,12 @@ const AuthStep = ({
             <input className="auth-input" placeholder={getUiString(languageRegion, 'preferredName')} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={60} required />
           )}
           <input className="auth-input" type="email" placeholder={getUiString(languageRegion, 'emailAddress')} value={resolvedEmail} onChange={(e) => { if (pendingConfirmationEmail) onClearPendingConfirmation(); setEmail(e.target.value); }} autoComplete="email" maxLength={254} required />
-          <input className="auth-input" type="password" placeholder={getUiString(languageRegion, 'password')} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={isCreateMode ? 'new-password' : 'current-password'} minLength={6} maxLength={128} required />
+          <div className="auth-password-row">
+            <input className="auth-input auth-input-password" type={showPassword ? 'text' : 'password'} placeholder={getUiString(languageRegion, 'password')} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={isCreateMode ? 'new-password' : 'current-password'} minLength={6} maxLength={128} required />
+            <button className="auth-password-toggle" type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((prev) => !prev)}>
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
           {!isCreateMode && !showRecoveryForm && (
             <button
               className="auth-link-button"
@@ -4299,8 +4331,14 @@ export default function App() {
     master.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
   }, [getAudioContext, soundEnabled]);
 
+  const triggerHaptic = useCallback((kind: 'primary' | 'secondary' | 'toggle') => {
+    if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
+    navigator.vibrate(kind === 'primary' ? 16 : kind === 'toggle' ? 10 : 7);
+  }, []);
+
   useEffect(() => {
-    if (!soundEnabled || typeof document === 'undefined') return;
+    if (typeof document === 'undefined') return;
+    if (!soundEnabled && (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function')) return;
 
     const clickHandler = (event: MouseEvent) => {
       const target = event.target;
@@ -4315,12 +4353,15 @@ export default function App() {
           ? 'primary'
           : 'secondary';
 
-      playUISound(kind);
+      if (soundEnabled) {
+        playUISound(kind);
+      }
+      triggerHaptic(kind);
     };
 
     document.addEventListener('click', clickHandler, true);
     return () => document.removeEventListener('click', clickHandler, true);
-  }, [playUISound, soundEnabled]);
+  }, [playUISound, soundEnabled, triggerHaptic]);
 
   useEffect(() => {
     return () => {
@@ -5035,8 +5076,7 @@ export default function App() {
     setAuthNotice(null);
     setAuthNoticeTone('info');
     setPendingConfirmationEmail(null);
-    showToast('Guest mode closed. You can start again or create an account.');
-  }, [showToast]);
+  }, []);
 
   const requestDeviceUsageAccess = useCallback(() => {
     void (async () => {
@@ -5770,7 +5810,7 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        <main style={{ flex: 1, width: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+        <main className="app-main-shell" style={{ flex: 1, width: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
           {activeTab === 'home' && (
             <Dashboard 
               userData={userData} 
