@@ -126,7 +126,7 @@ body {
 .welcome-highlight-grid {
   display: grid;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .welcome-highlight-card {
@@ -595,8 +595,8 @@ body {
 @media (max-width: 520px) {
   .welcome-step {
     justify-content: flex-start !important;
-    gap: 18px;
-    padding-top: max(48px, env(safe-area-inset-top, 0px) + 32px) !important;
+    gap: 14px;
+    padding-top: max(42px, env(safe-area-inset-top, 0px) + 26px) !important;
   }
 
   .welcome-step-copy {
@@ -636,7 +636,8 @@ body {
   }
 
   .welcome-step .onboarding-step-actions {
-    margin-top: 10px !important;
+    margin-top: auto !important;
+    padding-top: 14px;
   }
 
   .onboarding-step-cta {
@@ -1465,10 +1466,11 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
+  padding: 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(184, 240, 140, 0.12), rgba(139, 212, 255, 0.08));
+  border: 1px solid rgba(184, 240, 140, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .task-item.done {
   opacity: 0.6;
@@ -1495,7 +1497,9 @@ body {
   flex: 1;
 }
 .task-title {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: var(--text-main);
 }
 .task-tag {
   font-size: 0.7rem;
@@ -2094,8 +2098,12 @@ body {
 .priority-pill.Medium { background: rgba(125, 211, 252, 0.2); color: #bae6fd; }
 .priority-pill.Low { background: rgba(241, 199, 109, 0.2); color: #fde68a; }
 .task-due-date {
-  font-size: 0.7rem;
-  color: var(--text-tertiary);
+  font-size: 0.72rem;
+  color: var(--text-main);
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .task-repeat-pill {
   font-size: 0.7rem;

@@ -1346,9 +1346,9 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '44px 24px 40px', minHeight: '100%', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'flex-start' }}
+      style={{ padding: '46px 24px 28px', minHeight: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'flex-start' }}
     >
-      <div className="welcome-step-copy" style={{ display: 'grid', gap: '14px' }}>
+      <div className="welcome-step-copy" style={{ display: 'grid', gap: '14px', flex: 1, alignContent: 'start' }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -1367,7 +1367,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
           ))}
         </div>
       </div>
-      <div className="onboarding-step-actions" style={{ marginTop: '18px' }}>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '16px' }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
         </button>
@@ -3870,6 +3870,7 @@ export default function App() {
   const [usageAccessStandalone, setUsageAccessStandalone] = useState(false);
   const [showProOffer, setShowProOffer] = useState(false);
   const [isPro, setIsPro] = useState(persistedState.isPro ?? false);
+  const [blockedAppName, setBlockedAppName] = useState<string | null>(null);
 
   const [showCmd, setShowCmd] = useState(false);
   
@@ -3997,6 +3998,7 @@ export default function App() {
   const [introTrialStartedAt, setIntroTrialStartedAt] = useState<string | null>(persistedState.introTrialStartedAt ?? null);
   const [membershipAutoRenew, setMembershipAutoRenew] = useState(persistedState.membershipAutoRenew ?? true);
   const [trialNow, setTrialNow] = useState(() => Date.now());
+  const mainScrollRef = useRef<HTMLElement | null>(null);
   const resolvedPricingRegion = proPricingRegion === 'auto' ? detectedPricingRegion : proPricingRegion;
   const regionalCopy = useMemo(() => getRegionalUiCopy(resolvedPricingRegion), [resolvedPricingRegion]);
 
@@ -4014,6 +4016,9 @@ export default function App() {
     }, 60 * 1000);
     return () => window.clearInterval(timer);
   }, []);
+  useEffect(() => {
+    mainScrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+  }, [activeTab]);
   const profileAvatarUrl = useMemo(() => getAuthAvatarUrl(authUser), [authUser]);
   const profileAvatarInitials = useMemo(() => getAvatarInitials(userData.name, authUser?.email ?? ''), [authUser?.email, userData.name]);
   const fallbackSocialUsername = useMemo(() => (
@@ -4759,11 +4764,12 @@ export default function App() {
     setOnboardingStep('completed');
   }, []);
 
-  const resetToFreshSetup = useCallback(() => {
+  const resetToAuthSetup = useCallback(() => {
     setShowCmd(false);
     setShowProPlan(false);
     setShowProOffer(false);
     setShowBlockScreen(false);
+    setBlockedAppName(null);
     setShowRecap(false);
     setRecentUnlocks([]);
     setCelebratingAchievement(null);
@@ -4775,7 +4781,7 @@ export default function App() {
     setHasCompletedOnboarding(false);
     setIsRetakingSetup(false);
     setUsageAccessStandalone(false);
-    setOnboardingStep('welcome');
+    setOnboardingStep('auth');
     setAuthNotice(null);
     setAuthNoticeTone('info');
     setPendingConfirmationEmail(null);
@@ -4784,7 +4790,7 @@ export default function App() {
     setSocialUsername('');
     setUserData({ ...DEFAULT_USER_DATA });
     setFocusScore(89);
-    setSessions(DEFAULT_SESSIONS);
+    setSessions([...DEFAULT_SESSIONS]);
     setTasks(createDefaultTasks());
     setCompletedTaskIds([]);
     setTaskCompletions(0);
@@ -5100,19 +5106,10 @@ export default function App() {
   }, [showToast]);
 
   const openAuthFromGuest = useCallback(() => {
-    setShowCmd(false);
-    setShowProPlan(false);
-    setShowProOffer(false);
-    setShowBlockScreen(false);
-    setActiveTab('home');
-    setHasCompletedOnboarding(false);
-    setIsRetakingSetup(false);
-    setUsageAccessStandalone(false);
-    setOnboardingStep('auth');
-    setPendingConfirmationEmail(null);
+    resetToAuthSetup();
     setAuthNotice('Create an account or log in to sync your current VELLIN progress.');
     setAuthNoticeTone('info');
-  }, []);
+  }, [resetToAuthSetup]);
 
   const openProOffer = useCallback(() => {
     if (!authUser) {
@@ -5129,21 +5126,10 @@ export default function App() {
   }, [authUser, hasProAccess, openAuthFromGuest, showToast]);
 
   const leaveGuestMode = useCallback(() => {
-    setShowCmd(false);
-    setShowProPlan(false);
-    setShowProOffer(false);
-    setShowBlockScreen(false);
-    setActiveTab('home');
-    setHasCompletedOnboarding(false);
-    setIsRetakingSetup(false);
-    setUsageAccessStandalone(false);
-    setOnboardingStep('welcome');
-    setIsPro(false);
-    setProPlan(null);
-    setAuthNotice(null);
+    resetToAuthSetup();
+    setAuthNotice('Create an account or log in to move from guest mode into a saved VELLIN account.');
     setAuthNoticeTone('info');
-    setPendingConfirmationEmail(null);
-  }, []);
+  }, [resetToAuthSetup]);
 
   const requestDeviceUsageAccess = useCallback(() => {
     void (async () => {
@@ -5195,8 +5181,10 @@ export default function App() {
       await supabase.auth.signOut();
     }
     syncAuthUser(null);
-    resetToFreshSetup();
-  }, [resetToFreshSetup, supabase, syncAuthUser]);
+    resetToAuthSetup();
+    setAuthNotice('You signed out. Log back in or create an account to keep going.');
+    setAuthNoticeTone('info');
+  }, [resetToAuthSetup, supabase, syncAuthUser]);
 
   const handleDeleteAccount = useCallback(async () => {
     const confirmed = typeof window === 'undefined'
@@ -5223,8 +5211,8 @@ export default function App() {
     }
 
     syncAuthUser(null);
-    resetToFreshSetup();
-  }, [resetToFreshSetup, showToast, supabase, syncAuthUser]);
+    resetToAuthSetup();
+  }, [resetToAuthSetup, showToast, supabase, syncAuthUser]);
 
   useEffect(() => {
     if (!supabase) return;
@@ -5459,6 +5447,9 @@ export default function App() {
 
   // Handle Distraction Time
   const handleAppDistraction = (app: string, opts?: { simulate?: boolean }) => {
+    if (app === 'VELLIN') {
+      return;
+    }
     const isSelectedForBlocking = userData.distractions.includes(app);
     if (opts?.simulate) {
       setTotalReclaimed(prev => prev + 15 * 60);
@@ -5476,7 +5467,8 @@ export default function App() {
     }
     setFocusScore(prev => Math.max(0, prev - 5));
     if (isFocusing) {
-       setShowBlockScreen(true);
+      setBlockedAppName(app);
+      setShowBlockScreen(true);
     }
     setBlockedCount(prev => prev + 1);
     setPhonePickups(prev => prev + 1);
@@ -5488,14 +5480,17 @@ export default function App() {
     if (!isFocusing) {
       lastBreakReminderAtRef.current = null;
       setIsFocusing(true);
+      setShowBlockScreen(false);
+      setBlockedAppName(null);
       return;
     }
 
     const { currentSeconds, outcome } = finalizeFocusSession();
     if (activeAutoTaskId) {
       setActiveAutoTaskId(null);
-      setShowBlockScreen(false);
     }
+    setShowBlockScreen(false);
+    setBlockedAppName(null);
     setIsFocusing(false);
 
     if (outcome === 'completed') {
@@ -5648,7 +5643,6 @@ export default function App() {
             lastBreakReminderAtRef.current = null;
             setIsFocusing(true);
           }
-          setShowBlockScreen(true);
           showToast(`Focus block started: ${t.title}`);
         }
         if (triggeredTaskStarts[taskKey] === todayKey && activeAutoTaskId === t.id && nowMinutes >= endMinutes) {
@@ -5666,6 +5660,7 @@ export default function App() {
           setActiveAutoTaskId(null);
           if (isFocusing) setIsFocusing(false);
           setShowBlockScreen(false);
+          setBlockedAppName(null);
           showToast(outcome === 'completed' ? `Session complete: ${t.title}` : `Task closed: ${t.title}`);
         }
       });
@@ -5812,8 +5807,8 @@ export default function App() {
             <motion.div key="block" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="block-overlay">
                <ShieldCheck size={80} color="var(--accent-danger)" style={{ marginBottom: '24px' }} />
                <h1>Blocked by VELLIN</h1>
-               <div className="quote">"Discipline is choosing between what you want now and what you want most."</div>
-               <button className="btn-warning" onClick={() => setShowBlockScreen(false)}>Return to Focus</button>
+               <div className="quote">{blockedAppName ? `${blockedAppName} is on your block list while focus is running.` : '"Discipline is choosing between what you want now and what you want most."'}</div>
+               <button className="btn-warning" onClick={handleToggleFocus}>End Focus Session</button>
             </motion.div>
           )}
           {showCmd && (
@@ -5843,7 +5838,7 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        <main className="app-main-shell" style={{ flex: 1, width: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+        <main ref={mainScrollRef} className="app-main-shell" style={{ flex: 1, width: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
           {activeTab === 'home' && (
             <Dashboard 
               userData={userData} 
