@@ -1346,9 +1346,9 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '32px 24px 56px', minHeight: '100%', display: 'flex', flexDirection: 'column', textAlign: 'center' }}
+      style={{ padding: '32px 24px 56px', minHeight: '100%', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'flex-start' }}
     >
-      <div className="welcome-step-copy" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div className="welcome-step-copy" style={{ display: 'grid', gap: '18px' }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -1367,7 +1367,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
           ))}
         </div>
       </div>
-      <div className="onboarding-step-actions">
+      <div className="onboarding-step-actions" style={{ marginTop: '22px' }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
         </button>
@@ -3876,7 +3876,7 @@ export default function App() {
   const [userData, setUserData] = useState<UserData>(persistedState.userData ?? DEFAULT_USER_DATA);
   const [focusScore, setFocusScore] = useState(persistedState.focusScore ?? 89);
   const [focusSeconds, setFocusSeconds] = useState(0);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [, setToastMessage] = useState<string | null>(null);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [notificationPermissionState, setNotificationPermissionState] = useState<NotificationPermissionState>('unsupported');
   const [notificationScheduleDay, setNotificationScheduleDay] = useState(createTodayISO());
@@ -4617,13 +4617,6 @@ export default function App() {
       toastTimeoutRef.current = null;
     }, 3000);
   }, []);
-
-  const toastOverlay = toastMessage ? (
-    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="toast-container">
-      <Zap size={16} color="var(--accent-warning)" />
-      <span className="toast-message">{toastMessage}</span>
-    </motion.div>
-  ) : null;
 
   const notificationPermissionLabel = notificationPermissionState === 'granted'
     ? 'allowed'
@@ -5680,7 +5673,6 @@ export default function App() {
         <div className="ambient-glow" />
         <div className="ambient-glow secondary" />
         <div className="app-container pro-offer-container" style={{ overflowY: 'auto' }}>
-          <AnimatePresence>{toastOverlay}</AnimatePresence>
           <AnimatePresence mode="wait">
             {onboardingStep === 'welcome' && <WelcomeStep key="welcome" onNext={nextOnboarding} languageRegion={resolvedPricingRegion} />}
             {onboardingStep === 'survey' && <SurveyStep key="survey" onNext={(data) => { setUserData({...userData, survey: data}); nextOnboarding(); }} />}
@@ -5745,7 +5737,6 @@ export default function App() {
         <div className="ambient-glow" />
         <div className="ambient-glow secondary" />
         <div className="app-container pro-offer-container">
-          <AnimatePresence>{toastOverlay}</AnimatePresence>
           <ProPlanOfferStep
             onSkip={() => setShowProOffer(false)}
             onUpgrade={handlePurchasePro}
@@ -5774,7 +5765,6 @@ export default function App() {
           {showRecap && (
             <MilestoneRecapModal achievements={recentUnlocks} onClose={() => { setShowRecap(false); setRecentUnlocks([]); }} />
           )}
-          {toastOverlay}
           {showBlockScreen && (
             <motion.div key="block" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="block-overlay">
                <ShieldCheck size={80} color="var(--accent-danger)" style={{ marginBottom: '24px' }} />
