@@ -138,6 +138,50 @@ body {
   line-height: 1.4;
 }
 
+.welcome-flow-card {
+  margin-top: 8px;
+  padding: 16px;
+  text-align: left;
+  display: grid;
+  gap: 12px;
+}
+
+.welcome-flow-title {
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--text-tertiary);
+}
+
+.welcome-flow-list {
+  display: grid;
+  gap: 10px;
+}
+
+.welcome-flow-item {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  align-items: center;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.welcome-flow-index {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(184, 240, 140, 0.24), rgba(139, 212, 255, 0.18));
+  border: 1px solid rgba(184, 240, 140, 0.22);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 .brand-lockup {
   display: inline-flex;
   align-items: center;
@@ -613,6 +657,16 @@ body {
   .welcome-highlight-card {
     padding: 13px 14px;
     font-size: 0.88rem;
+  }
+
+  .welcome-flow-card {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .welcome-flow-item {
+    font-size: 0.86rem;
+    gap: 8px;
   }
 
   .onboarding-step-shell {
