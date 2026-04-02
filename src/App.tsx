@@ -51,7 +51,11 @@ import {
   normalizeEmail,
   sanitizePlainText,
 } from './lib/security/input';
+import { MOBILE_AUTH_REDIRECT_URL } from './lib/auth/constants';
 import { PRO_MONTHLY_PLAN } from './lib/billing/plans';
+
+const NATIVE_ACCOUNT_API_BASE_URL = 'https://vellin-tau.vercel.app';
+const NATIVE_PASSWORD_RESET_REDIRECT_URL = `${MOBILE_AUTH_REDIRECT_URL}?next=/?reset_password=1`;
 
 // --- Animation Variants ---
 const formatPrettyTime = (secs: number) => {
@@ -4856,6 +4860,26 @@ export default function App() {
     setOnboardingStep(nextStep);
   }, [completeOnboardingFlow, deviceUsageAccessStatus, isPro, isRetakingSetup, onboardingStep]);
 
+  const getNativeDeleteRequestHeaders = useCallback(async () => {
+    if (!supabase) {
+      throw new Error('Account actions are not available right now.');
+    }
+
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error || !session?.access_token) {
+      throw new Error('Log in again before deleting this account.');
+    }
+
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    };
+  }, [supabase]);
+
   const handleCreateAccount = useCallback(async ({ name, email, password }: { name: string, email: string, password: string }) => {
     const safeName = sanitizePlainText(name, 60);
     const safeEmail = normalizeEmail(email);
@@ -4887,27 +4911,54 @@ export default function App() {
       return;
     }
     setAuthLoading(true);
-    const response = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: safeName,
+    let needsEmailConfirmation = false;
+    let payloadError: string | null = null;
+
+    if (Capacitor.isNativePlatform()) {
+      const { data, error } = await supabase.auth.signUp({
         email: safeEmail,
         password,
-        isNative: Capacitor.isNativePlatform(),
-      }),
-    });
-    const payload = await response.json().catch(() => null) as {
-      error?: string;
-      user?: { email?: string };
-      needsEmailConfirmation?: boolean;
-      name?: string;
-    } | null;
+        options: {
+          emailRedirectTo: MOBILE_AUTH_REDIRECT_URL,
+          data: {
+            name: safeName,
+          },
+        },
+      });
+
+      payloadError = error?.message ?? null;
+      needsEmailConfirmation = !data.session && !data.user?.email_confirmed_at;
+    } else {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: safeName,
+          email: safeEmail,
+          password,
+          isNative: false,
+        }),
+      });
+      const payload = await response.json().catch(() => null) as {
+        error?: string;
+        user?: { email?: string };
+        needsEmailConfirmation?: boolean;
+        name?: string;
+      } | null;
+
+      if (!response.ok) {
+        payloadError = payload?.error || 'We could not create your account right now.';
+      } else {
+        needsEmailConfirmation = Boolean(payload?.needsEmailConfirmation);
+      }
+    }
+
     setAuthLoading(false);
-    if (!response.ok) {
-      const message = `${payload?.error ?? ''}`.toLowerCase();
+
+    if (payloadError) {
+      const message = payloadError.toLowerCase();
       if (message.includes('rate limit')) {
         const notice = `We already sent a confirmation email to ${safeEmail}. Check your Gmail inbox, spam, and promotions tabs, then tap the confirmation link before logging in.`;
         setAuthNotice(notice);
@@ -4916,12 +4967,13 @@ export default function App() {
         showToast('Check your Gmail to confirm your email before logging in.');
         return;
       }
-      showToast(payload?.error || 'We could not create your account right now.');
+      showToast(payloadError);
       return;
     }
+
     const nextUser = await refreshAuthUserFromClient();
     if (!nextUser?.email) {
-      if (payload?.needsEmailConfirmation && payload.user?.email) {
+      if (needsEmailConfirmation) {
         setAuthNotice(`We sent a confirmation link to ${safeEmail}. Tap it from Gmail and VELLIN will return through the callback page so you can land back in the app cleanly.`);
         setAuthNoticeTone('success');
         setPendingConfirmationEmail(safeEmail);
@@ -4932,7 +4984,6 @@ export default function App() {
       showToast('Account creation did not complete. Please try again.');
       return;
     }
-    const needsEmailConfirmation = Boolean(payload?.needsEmailConfirmation);
     if (needsEmailConfirmation) {
       setAuthNotice(`We sent a confirmation link to ${safeEmail}. Tap it from Gmail and VELLIN will return through the callback page so you can land back in the app cleanly.`);
       setAuthNoticeTone('success');
@@ -4973,20 +5024,35 @@ export default function App() {
       return;
     }
     setAuthLoading(true);
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    let payloadError: string | null = null;
+
+    if (Capacitor.isNativePlatform()) {
+      const { error } = await supabase.auth.signInWithPassword({
         email: safeEmail,
         password,
-      }),
-    });
-    const payload = await response.json().catch(() => null) as { error?: string } | null;
+      });
+      payloadError = error?.message ?? null;
+    } else {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: safeEmail,
+          password,
+        }),
+      });
+      const payload = await response.json().catch(() => null) as { error?: string } | null;
+      if (!response.ok) {
+        payloadError = payload?.error || 'We could not sign you in right now.';
+      }
+    }
+
     setAuthLoading(false);
-    if (!response.ok) {
-      const message = `${payload?.error ?? ''}`.toLowerCase();
+
+    if (payloadError) {
+      const message = `${payloadError}`.toLowerCase();
       if (message.includes('email not confirmed')) {
         const notice = `This email still needs to be confirmed. Open Gmail for ${safeEmail}, look for the VELLIN confirmation email, and tap the link before trying to log in again.`;
         setAuthNotice(notice);
@@ -4995,7 +5061,7 @@ export default function App() {
         showToast('Please confirm your email in Gmail before logging in.');
         return;
       }
-      showToast(payload?.error || 'We could not sign you in right now.');
+      showToast(payloadError);
       return;
     }
     const nextUser = await refreshAuthUserFromClient();
@@ -5015,35 +5081,55 @@ export default function App() {
     const safeEmail = normalizeEmail(email);
     setAuthNotice(null);
     setAuthNoticeTone('info');
+    if (!supabase) {
+      showToast('Password reset is not available right now.');
+      return;
+    }
     if (!safeEmail || !isValidEmail(safeEmail)) {
       showToast('Enter the email on your account first.');
       return;
     }
 
     setAuthLoading(true);
-    const response = await fetch('/api/auth/forgot-password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: safeEmail,
-        isNative: Capacitor.isNativePlatform(),
-      }),
-    });
-    const payload = await response.json().catch(() => null) as { error?: string; message?: string } | null;
+    let payloadMessage = 'If that email exists, we sent a password reset link.';
+    let payloadError: string | null = null;
+
+    if (Capacitor.isNativePlatform()) {
+      const { error } = await supabase.auth.resetPasswordForEmail(safeEmail, {
+        redirectTo: NATIVE_PASSWORD_RESET_REDIRECT_URL,
+      });
+      payloadError = error?.message ?? null;
+    } else {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: safeEmail,
+          isNative: false,
+        }),
+      });
+      const payload = await response.json().catch(() => null) as { error?: string; message?: string } | null;
+      if (!response.ok) {
+        payloadError = payload?.error || 'We could not send a reset link right now.';
+      } else {
+        payloadMessage = payload?.message || payloadMessage;
+      }
+    }
+
     setAuthLoading(false);
 
-    if (!response.ok) {
-      showToast(payload?.error || 'We could not send a reset link right now.');
+    if (payloadError) {
+      showToast(payloadError);
       return;
     }
 
     setPendingConfirmationEmail(safeEmail);
     setAuthNotice(`We sent a secure password reset link to ${safeEmail}. Open it from your email, and VELLIN will bring you back to set a new password.`);
     setAuthNoticeTone('success');
-    showToast(payload?.message || 'Password reset link sent.');
-  }, [showToast]);
+    showToast(payloadMessage || 'Password reset link sent.');
+  }, [showToast, supabase]);
 
   const handleUpdatePassword = useCallback(async (nextPassword: string) => {
     if (!supabase) {
@@ -5192,12 +5278,26 @@ export default function App() {
       : window.confirm('Delete your account permanently? This removes your login and account data from Supabase.');
     if (!confirmed) return;
 
-    const response = await fetch('/api/account/delete', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    let response: Response;
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const headers = await getNativeDeleteRequestHeaders();
+        response = await fetch(`${NATIVE_ACCOUNT_API_BASE_URL}/api/account/delete`, {
+          method: 'DELETE',
+          headers,
+        });
+      } else {
+        response = await fetch('/api/account/delete', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Delete account is not available right now.');
+      return;
+    }
 
     const payload = await response.json().catch(() => null) as { error?: string } | null;
 
@@ -5212,7 +5312,7 @@ export default function App() {
 
     syncAuthUser(null);
     resetToAuthSetup();
-  }, [resetToAuthSetup, showToast, supabase, syncAuthUser]);
+  }, [getNativeDeleteRequestHeaders, resetToAuthSetup, showToast, supabase, syncAuthUser]);
 
   useEffect(() => {
     if (!supabase) return;
