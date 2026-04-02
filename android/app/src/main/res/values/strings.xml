@@ -4,4 +4,6 @@
     <string name="title_activity_main">VELLIN</string>
     <string name="package_name">app.vellin.mobile</string>
     <string name="custom_url_scheme">app.vellin.mobile</string>
+    <string name="accessibility_focus_blocker_description">Lets VELLIN intercept blocked apps while a focus session is running.</string>
+    <string name="accessibility_focus_blocker_summary">Kick blocked apps out to VELLIN during focus sessions.</string>
 </resources>

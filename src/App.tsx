@@ -42,11 +42,15 @@ import {
 } from './lib/mobileNotifications';
 import {
   canUseNativeDeviceUsage,
+  consumeLastBlockedApp,
   getInstalledApps,
   getWeeklyUsageForLabels,
   type InstalledAppEntry,
+  openFocusBlockerSettings,
+  readFocusBlockerStatus,
   readDeviceUsageStatus,
   requestDeviceUsagePermission,
+  syncFocusBlockConfig,
 } from './lib/deviceUsage';
 import {
   containsControlChars,
@@ -252,7 +256,7 @@ type OnboardingStep =
 const DEFAULT_USER_DATA: UserData = {
   name: '',
   survey: null,
-  distractions: ['Instagram', 'TikTok'],
+  distractions: [],
   mode: null,
   allowance: 4
 };
@@ -1510,7 +1514,7 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
     <motion.div
       initial={false}
       animate={{ opacity: 1, y: 0 }}
-      className="onboarding-step-shell"
+      className="onboarding-step-shell protocol-step"
       style={{ padding: '32px 24px 56px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100%' }}
     >
       <motion.div
@@ -1620,7 +1624,7 @@ const AuthStep = ({
   };
 
   return (
-    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '18px 16px 28px' }}>
+    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '30px 16px 12px' }}>
       <div className="auth-brand-row">
         <BrandLockup subtitle="Focus infrastructure for real life." compact />
       </div>
@@ -1801,14 +1805,30 @@ const AppSelectionStep = ({
   const [selected, setSelected] = useState<string[]>([]);
   const [showAllApps, setShowAllApps] = useState(false);
   const [appSearch, setAppSearch] = useState('');
+  const [showNoSelectionWarning, setShowNoSelectionWarning] = useState(false);
   const toggle = (name: string) => setSelected(prev => prev.includes(name) ? prev.filter(a => a !== name) : [...prev, name]);
   const allApps = useMemo(() => mergeSelectableApps(installedApps), [installedApps]);
   const featuredApps = useMemo(() => mergeSelectableApps(installedApps).slice(0, 6), [installedApps]);
+  const installedIconLookup = useMemo(() => installedApps.reduce<Record<string, string>>((acc, app) => {
+    if (app.iconDataUrl && app.label) {
+      acc[normalizeAppLabel(app.label)] = app.iconDataUrl;
+    }
+    return acc;
+  }, {}), [installedApps]);
   const visibleInstalledApps = useMemo(() => {
     const normalizedSearch = normalizeAppLabel(appSearch);
     if (!normalizedSearch) return allApps;
     return allApps.filter((app) => normalizeAppLabel(app).includes(normalizedSearch));
   }, [allApps, appSearch]);
+  const getAppIcon = useCallback((app: string) => installedIconLookup[normalizeAppLabel(app)] || APP_LOGOS[app] || null, [installedIconLookup]);
+
+  const handleContinue = () => {
+    if (selected.length === 0 && !showNoSelectionWarning) {
+      setShowNoSelectionWarning(true);
+      return;
+    }
+    onNext(selected);
+  };
 
   return (
     <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell" style={{ padding: '36px 24px 56px' }}>
@@ -1820,11 +1840,14 @@ const AppSelectionStep = ({
           <div
             key={`${app || 'selected-app'}-${index}`}
             className={`glass-card selectable-card onboarding-static-card ${selected.includes(app) ? 'selected' : ''}`}
-            onClick={() => toggle(app)}
+            onClick={() => {
+              setShowNoSelectionWarning(false);
+              toggle(app);
+            }}
             aria-pressed={selected.includes(app)}
           >
               {selected.includes(app) && <div className="selectable-check-badge"><CheckCircle2 size={14} /></div>}
-              {APP_LOGOS[app] ? <img src={APP_LOGOS[app]} alt={app} /> : <div className="custom-app-icon selectable-app-fallback">{app.charAt(0)}</div>}
+              {getAppIcon(app) ? <img src={getAppIcon(app) ?? ''} alt={app} /> : <div className="custom-app-icon selectable-app-fallback">{app.charAt(0)}</div>}
               <div style={{ fontSize: '0.75rem', fontWeight: 600, color: selected.includes(app) ? 'var(--text-main)' : 'var(--text-secondary)' }}>{app}</div>
            </div>
         ))}
@@ -1850,15 +1873,15 @@ const AppSelectionStep = ({
              />
            </div>
            <div className="all-apps-list">
-            {visibleInstalledApps.map((app, index) => {
+             {visibleInstalledApps.map((app, index) => {
               const active = selected.includes(app);
               return (
-                <div key={`${app || 'all-app'}-${index}`} className="mock-app-row" onClick={() => toggle(app)}>
+                <div key={`${app || 'all-app'}-${index}`} className="mock-app-row" onClick={() => { setShowNoSelectionWarning(false); toggle(app); }}>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                     {APP_LOGOS[app] ? <img src={APP_LOGOS[app]} style={{ width: '36px', height: '36px', borderRadius: '8px' }} alt={app} /> : <div className="custom-app-icon">{app.charAt(0)}</div>}
+                     {getAppIcon(app) ? <img src={getAppIcon(app) ?? ''} style={{ width: '36px', height: '36px', borderRadius: '8px' }} alt={app} /> : <div className="custom-app-icon">{app.charAt(0)}</div>}
                      <span>{app}</span>
-                   </div>
-                   <div className={`app-toggle ${active ? 'active' : ''}`}>{active && <CheckCircle2 size={14} />}</div>
+                    </div>
+                    <div className={`app-toggle ${active ? 'active' : ''}`}>{active && <CheckCircle2 size={14} />}</div>
                  </div>
                );
              })}
@@ -1869,10 +1892,16 @@ const AppSelectionStep = ({
          </div>
        )}
 
-       <button className="btn-primary" style={{ width: '100%', marginTop: 'auto' }} onClick={() => onNext(selected.length ? selected : ['Instagram', 'TikTok'])}>
-         {getUiString(languageRegion, 'setTargets')}
+       {showNoSelectionWarning && (
+        <div className="auth-notice auth-notice-warning" style={{ marginTop: 'auto', marginBottom: '12px' }}>
+          You have not picked any apps to block yet. You can continue, but focus sessions will only act as a timer until you choose some distraction targets.
+        </div>
+       )}
+
+       <button className="btn-primary" style={{ width: '100%', marginTop: showNoSelectionWarning ? 0 : 'auto' }} onClick={handleContinue}>
+         {showNoSelectionWarning ? 'Continue Without Blocking Apps' : getUiString(languageRegion, 'setTargets')}
        </button>
-    </motion.div>
+     </motion.div>
   );
 };
 
@@ -2166,6 +2195,7 @@ const Dashboard = ({ userData, focusScore, isFocusing, onToggleFocus, onTestApp,
   const [editEndTime, setEditEndTime] = useState('');
   const safeGoalSeconds = Math.max(1, dailyGoalSeconds);
   const goalProgress = Math.min(100, (todayReclaimed / safeGoalSeconds) * 100);
+  const hasDistractionTargets = userData.distractions.length > 0;
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const todayKey = new Date().toDateString();
@@ -2419,6 +2449,11 @@ const Dashboard = ({ userData, focusScore, isFocusing, onToggleFocus, onTestApp,
         <button className="btn-primary focus-cta focus-cta-giant" onClick={onToggleFocus}>
           {isFocusing ? 'End Session' : 'Start Focus Session'}
         </button>
+        {!hasDistractionTargets && (
+          <div className="focus-warning-inline">
+            Focus can still run without blocked apps, but it will not shield you from distractions until you choose at least one app in your blocklist.
+          </div>
+        )}
         {isFocusing && <div className="focus-confirm">Focus is active. Distractions are blocked.</div>}
       </div>
 
@@ -2946,6 +2981,13 @@ const Blocklist = ({
   };
 
   const allApps = useMemo(() => mergeSelectableApps(installedApps), [installedApps]);
+  const installedIconLookup = useMemo(() => installedApps.reduce<Record<string, string>>((acc, app) => {
+    if (app.iconDataUrl && app.label) {
+      acc[normalizeAppLabel(app.label)] = app.iconDataUrl;
+    }
+    return acc;
+  }, {}), [installedApps]);
+  const getAppIcon = useCallback((app: string) => installedIconLookup[normalizeAppLabel(app)] || APP_LOGOS[app] || null, [installedIconLookup]);
   const filteredApps = useMemo(() => {
     const normalizedSearch = normalizeAppLabel(appSearch);
     if (!normalizedSearch) return allApps;
@@ -2968,7 +3010,7 @@ const Blocklist = ({
            return (
             <div key={`${app || 'visible-app'}-${index}`} className="glass-card interactive" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => toggle(app)}>
                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                 {APP_LOGOS[app] ? <img src={APP_LOGOS[app]} style={{ width: '40px', height: '40px', borderRadius: '10px' }} alt={app} /> : <div className="custom-app-icon" style={{ width: '40px', height: '40px' }}>{app.charAt(0)}</div>}
+                 {getAppIcon(app) ? <img src={getAppIcon(app) ?? ''} style={{ width: '40px', height: '40px', borderRadius: '10px' }} alt={app} /> : <div className="custom-app-icon" style={{ width: '40px', height: '40px' }}>{app.charAt(0)}</div>}
                  <span style={{ fontSize: '1.05rem', fontWeight: 500 }}>{app}</span>
                </div>
                
@@ -3005,7 +3047,7 @@ const Blocklist = ({
                   onClick={() => toggle(app)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    {APP_LOGOS[app] ? <img src={APP_LOGOS[app]} style={{ width: '34px', height: '34px', borderRadius: '8px' }} alt={app} /> : <div className="custom-app-icon">{app.charAt(0)}</div>}
+                    {getAppIcon(app) ? <img src={getAppIcon(app) ?? ''} style={{ width: '34px', height: '34px', borderRadius: '8px' }} alt={app} /> : <div className="custom-app-icon">{app.charAt(0)}</div>}
                     <span>{app}</span>
                   </div>
                   <div className={`app-toggle ${isActive ? 'active' : ''}`}>{isActive && <CheckCircle2 size={14} />}</div>
@@ -4089,6 +4131,8 @@ export default function App() {
   useEffect(() => { lastGoalDateRef.current = lastGoalDate; }, [lastGoalDate]);
   const [blockedCount, setBlockedCount] = useState(persistedState.blockedCount ?? 0);
   const [blockedByApp, setBlockedByApp] = useState<Record<string, number>>(persistedState.blockedByApp ?? {});
+  const [isFocusBlockerEnabled, setIsFocusBlockerEnabled] = useState(() => !canUseNativeDeviceUsage());
+  const [showBlockerSetupPrompt, setShowBlockerSetupPrompt] = useState(false);
   const [weeklyBlockedUsageByApp, setWeeklyBlockedUsageByApp] = useState<Record<string, number>>({});
   const [phonePickups, setPhonePickups] = useState(persistedState.phonePickups ?? 0);
   const [focusByDate, setFocusByDate] = useState<Record<string, number>>(persistedState.focusByDate ?? {});
@@ -4108,33 +4152,6 @@ export default function App() {
     })();
     return () => {
       cancelled = true;
-    };
-  }, []);
-  useEffect(() => {
-    if (!canUseNativeDeviceUsage() || !Capacitor.isNativePlatform()) return;
-
-    let cancelled = false;
-    let listenerHandle: { remove: () => Promise<void> } | null = null;
-
-    const refreshDeviceUsageStatus = async () => {
-      const nativeStatus = await readDeviceUsageStatus();
-      if (cancelled || nativeStatus !== 'granted') return;
-      setDeviceUsageAccessStatus('granted');
-    };
-
-    void CapacitorApp.addListener('appStateChange', (event) => {
-      if (event.isActive) {
-        void refreshDeviceUsageStatus();
-      }
-    }).then((handle) => {
-      listenerHandle = handle;
-    });
-
-    return () => {
-      cancelled = true;
-      if (listenerHandle) {
-        void listenerHandle.remove();
-      }
     };
   }, []);
   const [proPlan, setProPlan] = useState<ProPlan | null>(persistedState.proPlan ?? null);
@@ -4181,6 +4198,98 @@ export default function App() {
       cancelled = true;
     };
   }, []);
+  const blockedPackageEntries = useMemo(() => installedApps.filter((app) => (
+    userData.distractions.some((selectedApp) => normalizeAppLabel(selectedApp) === normalizeAppLabel(app.label))
+  )), [installedApps, userData.distractions]);
+  const blockedPackageNames = useMemo(() => blockedPackageEntries.map((app) => app.packageName), [blockedPackageEntries]);
+  const labelForBlockedPackage = useCallback((packageName: string) => (
+    blockedPackageEntries.find((app) => app.packageName === packageName)?.label
+    || installedApps.find((app) => app.packageName === packageName)?.label
+    || packageName
+  ), [blockedPackageEntries, installedApps]);
+  const refreshFocusBlockerStatus = useCallback(async () => {
+    if (!canUseNativeDeviceUsage() || !Capacitor.isNativePlatform()) return false;
+    const enabled = await readFocusBlockerStatus();
+    setIsFocusBlockerEnabled(enabled);
+    if (enabled) {
+      setShowBlockerSetupPrompt(false);
+    }
+    return enabled;
+  }, []);
+  const consumeNativeBlockedEvent = useCallback(async () => {
+    if (!canUseNativeDeviceUsage() || !Capacitor.isNativePlatform()) return;
+    const event = await consumeLastBlockedApp();
+    if (!event.packageName) return;
+
+    const blockedLabel = labelForBlockedPackage(event.packageName);
+    setBlockedAppName(blockedLabel);
+    setShowBlockScreen(true);
+    setBlockedCount((prev) => prev + 1);
+    setPhonePickups((prev) => prev + 1);
+    setBlockedByApp((prev) => ({ ...prev, [blockedLabel]: (prev[blockedLabel] || 0) + 1 }));
+  }, [labelForBlockedPackage]);
+  useEffect(() => {
+    if (!canUseNativeDeviceUsage() || !Capacitor.isNativePlatform()) return;
+    let cancelled = false;
+    void (async () => {
+      const enabled = await readFocusBlockerStatus();
+      if (!cancelled) {
+        setIsFocusBlockerEnabled(enabled);
+        if (enabled) {
+          setShowBlockerSetupPrompt(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  useEffect(() => {
+    if (!canUseNativeDeviceUsage() || !Capacitor.isNativePlatform()) return;
+    void syncFocusBlockConfig({
+      active: (isFocusing || Boolean(activeAutoTaskId)) && blockedPackageNames.length > 0,
+      blockedPackages: blockedPackageNames,
+    }).then((enabled) => {
+      setIsFocusBlockerEnabled(enabled);
+      if (enabled) {
+        setShowBlockerSetupPrompt(false);
+      }
+    });
+  }, [activeAutoTaskId, blockedPackageNames, isFocusing]);
+  useEffect(() => {
+    if (!canUseNativeDeviceUsage() || !Capacitor.isNativePlatform()) return;
+
+    let cancelled = false;
+    let listenerHandle: { remove: () => Promise<void> } | null = null;
+
+    const refreshNativeState = async () => {
+      const nativeStatus = await readDeviceUsageStatus();
+      if (!cancelled && nativeStatus === 'granted') {
+        setDeviceUsageAccessStatus('granted');
+      }
+      if (!cancelled) {
+        await refreshFocusBlockerStatus();
+        await consumeNativeBlockedEvent();
+      }
+    };
+
+    void CapacitorApp.addListener('appStateChange', (event) => {
+      if (event.isActive) {
+        void refreshNativeState();
+      }
+    }).then((handle) => {
+      listenerHandle = handle;
+    });
+
+    void refreshNativeState();
+
+    return () => {
+      cancelled = true;
+      if (listenerHandle) {
+        void listenerHandle.remove();
+      }
+    };
+  }, [consumeNativeBlockedEvent, refreshFocusBlockerStatus]);
   const scrollVisibleSurfaceToTop = useCallback(() => {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'auto' });
@@ -5763,8 +5872,22 @@ export default function App() {
     showToast(`Blocked ${app} -5 Focus Score`);
   };
 
+  const openNativeBlockerSettings = useCallback(() => {
+    void openFocusBlockerSettings();
+  }, []);
+
   const handleToggleFocus = () => {
     if (!isFocusing) {
+      if (
+        Capacitor.isNativePlatform()
+        && canUseNativeDeviceUsage()
+        && userData.distractions.length > 0
+        && blockedPackageNames.length > 0
+        && !isFocusBlockerEnabled
+      ) {
+        setShowBlockerSetupPrompt(true);
+        return;
+      }
       lastBreakReminderAtRef.current = null;
       setIsFocusing(true);
       setShowBlockScreen(false);
@@ -6106,6 +6229,26 @@ export default function App() {
                <button className="btn-warning" onClick={handleToggleFocus}>End Focus Session</button>
             </motion.div>
           )}
+          {showBlockerSetupPrompt && (
+            <motion.div key="blocker-setup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="block-overlay blocker-setup-overlay">
+              <Shield size={72} color="var(--accent-primary)" style={{ marginBottom: '18px' }} />
+              <h1>Turn On Blocker Access</h1>
+              <div className="quote">
+                Android needs one extra accessibility permission before VELLIN can kick blocked apps like Instagram out during a focus session.
+              </div>
+              <div className="glass-card blocker-setup-card">
+                <div className="blocker-setup-step"><strong>1.</strong> Open Android Accessibility settings.</div>
+                <div className="blocker-setup-step"><strong>2.</strong> Find <strong>VELLIN</strong> and switch Blocker Access on.</div>
+                <div className="blocker-setup-step"><strong>3.</strong> Come back here and start the focus timer again.</div>
+              </div>
+              <div className="blocker-setup-actions">
+                <button className="btn-primary" onClick={openNativeBlockerSettings}>Open Blocker Access</button>
+                <button className="btn-secondary" onClick={() => { setShowBlockerSetupPrompt(false); lastBreakReminderAtRef.current = null; setIsFocusing(true); setShowBlockScreen(false); setBlockedAppName(null); }}>
+                  Start Without Blocking
+                </button>
+              </div>
+            </motion.div>
+          )}
           {showCmd && (
             <CommandMenu
               key="cmd"
@@ -6113,8 +6256,7 @@ export default function App() {
               onClose={() => setShowCmd(false)}
               onStartFocus={() => {
                 if (!isFocusing) {
-                  lastBreakReminderAtRef.current = null;
-                  setIsFocusing(true);
+                  handleToggleFocus();
                 }
               }}
               onNavigate={(tab) => setActiveTab(tab)}
@@ -6240,8 +6382,7 @@ export default function App() {
               onUpgrade={openProOffer}
               onStartFocus={() => {
                 if (!isFocusing) {
-                  lastBreakReminderAtRef.current = null;
-                  setIsFocusing(true);
+                  handleToggleFocus();
                 }
               }}
               onAction={(title) => {

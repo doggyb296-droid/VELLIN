@@ -12,6 +12,7 @@ export interface WeeklyUsageEntry {
 export interface InstalledAppEntry {
   label: string;
   packageName: string;
+  iconDataUrl?: string;
 }
 
 interface DeviceUsagePlugin {
@@ -19,6 +20,10 @@ interface DeviceUsagePlugin {
   requestAccess(): Promise<{ status: DeviceUsageStatus }>;
   getWeeklyUsage(options: { packages: string[] }): Promise<{ status: DeviceUsageStatus; usage: WeeklyUsageEntry[] }>;
   getInstalledApps(): Promise<{ apps: InstalledAppEntry[] }>;
+  getFocusBlockerStatus(): Promise<{ enabled: boolean }>;
+  openFocusBlockerSettings(): Promise<void>;
+  setFocusBlockConfig(options: { active: boolean; blockedPackages: string[] }): Promise<{ enabled: boolean }>;
+  consumeLastBlockedApp(): Promise<{ packageName: string | null; blockedAt: number | null }>;
 }
 
 const DeviceUsage = registerPlugin<DeviceUsagePlugin>('DeviceUsage');
@@ -70,6 +75,54 @@ export const getInstalledApps = async (): Promise<InstalledAppEntry[]> => {
       : [];
   } catch {
     return [];
+  }
+};
+
+export const readFocusBlockerStatus = async (): Promise<boolean> => {
+  if (!canUseNativeDeviceUsage()) return false;
+
+  try {
+    const result = await DeviceUsage.getFocusBlockerStatus();
+    return Boolean(result.enabled);
+  } catch {
+    return false;
+  }
+};
+
+export const openFocusBlockerSettings = async (): Promise<void> => {
+  if (!canUseNativeDeviceUsage()) return;
+
+  try {
+    await DeviceUsage.openFocusBlockerSettings();
+  } catch {
+    // Ignore native settings failures and keep the app responsive.
+  }
+};
+
+export const syncFocusBlockConfig = async (options: { active: boolean; blockedPackages: string[] }): Promise<boolean> => {
+  if (!canUseNativeDeviceUsage()) return false;
+
+  try {
+    const result = await DeviceUsage.setFocusBlockConfig(options);
+    return Boolean(result.enabled);
+  } catch {
+    return false;
+  }
+};
+
+export const consumeLastBlockedApp = async (): Promise<{ packageName: string | null; blockedAt: number | null }> => {
+  if (!canUseNativeDeviceUsage()) {
+    return { packageName: null, blockedAt: null };
+  }
+
+  try {
+    const result = await DeviceUsage.consumeLastBlockedApp();
+    return {
+      packageName: result.packageName ?? null,
+      blockedAt: result.blockedAt ?? null,
+    };
+  } catch {
+    return { packageName: null, blockedAt: null };
   }
 };
 

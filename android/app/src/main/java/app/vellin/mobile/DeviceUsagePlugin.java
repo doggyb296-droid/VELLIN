@@ -7,8 +7,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.provider.Settings;
+import android.util.Base64;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -25,6 +30,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.io.ByteArrayOutputStream;
 
 @CapacitorPlugin(name = "DeviceUsage")
 public class DeviceUsagePlugin extends Plugin {
@@ -129,6 +135,10 @@ public class DeviceUsagePlugin extends Plugin {
             JSObject item = new JSObject();
             item.put("label", label);
             item.put("packageName", packageName);
+            String iconDataUrl = getIconDataUrl(resolveInfo.loadIcon(packageManager));
+            if (iconDataUrl != null) {
+                item.put("iconDataUrl", iconDataUrl);
+            }
             entries.add(item);
             seenPackages.add(packageName);
         }
@@ -150,6 +160,79 @@ public class DeviceUsagePlugin extends Plugin {
         JSObject result = new JSObject();
         result.put("apps", apps);
         call.resolve(result);
+    }
+
+    @PluginMethod
+    public void getFocusBlockerStatus(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("enabled", FocusBlockerStore.isBlockerEnabled(getContext()));
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void openFocusBlockerSettings(PluginCall call) {
+        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(intent);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void setFocusBlockConfig(PluginCall call) {
+        boolean active = call.getBoolean("active", false);
+        JSArray blockedPackagesArray = call.getArray("blockedPackages", new JSArray());
+        Set<String> blockedPackages = new HashSet<>();
+
+        for (int i = 0; i < blockedPackagesArray.length(); i++) {
+            String packageName = blockedPackagesArray.optString(i, "");
+            if (!packageName.isEmpty()) {
+                blockedPackages.add(packageName);
+            }
+        }
+
+        FocusBlockerStore.saveConfig(getContext(), active, blockedPackages);
+
+        JSObject result = new JSObject();
+        result.put("enabled", FocusBlockerStore.isBlockerEnabled(getContext()));
+        result.put("active", active);
+        result.put("blockedCount", blockedPackages.size());
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void consumeLastBlockedApp(PluginCall call) {
+        JSObject result = new JSObject();
+        String packageName = FocusBlockerStore.getPreferences(getContext()).getString(FocusBlockerStore.KEY_LAST_BLOCKED_PACKAGE, null);
+        long blockedAt = FocusBlockerStore.getPreferences(getContext()).getLong(FocusBlockerStore.KEY_LAST_BLOCKED_AT, 0L);
+        result.put("packageName", packageName);
+        result.put("blockedAt", blockedAt == 0L ? null : blockedAt);
+        FocusBlockerStore.clearLastBlockedPackage(getContext());
+        call.resolve(result);
+    }
+
+    private String getIconDataUrl(Drawable drawable) {
+        try {
+            if (drawable == null) return null;
+
+            Bitmap bitmap;
+            if (drawable instanceof BitmapDrawable && ((BitmapDrawable) drawable).getBitmap() != null) {
+                bitmap = ((BitmapDrawable) drawable).getBitmap();
+            } else {
+                int width = Math.max(1, drawable.getIntrinsicWidth());
+                int height = Math.max(1, drawable.getIntrinsicHeight());
+                bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                drawable.draw(canvas);
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+            String encoded = Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP);
+            return "data:image/png;base64," + encoded;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     private boolean hasUsageAccess() {

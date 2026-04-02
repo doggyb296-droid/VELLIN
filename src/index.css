@@ -599,14 +599,15 @@ body {
 @media (max-width: 520px) {
   .welcome-step {
     justify-content: space-between !important;
-    gap: 14px;
-    padding-top: max(28px, env(safe-area-inset-top, 0px) + 18px) !important;
-    padding-bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 18px)) !important;
+    gap: 10px;
+    padding-top: max(44px, env(safe-area-inset-top, 0px) + 30px) !important;
+    padding-bottom: max(12px, calc(env(safe-area-inset-bottom, 0px) + 8px)) !important;
   }
 
   .welcome-step-copy {
-    justify-content: center !important;
-    gap: 14px !important;
+    justify-content: flex-end !important;
+    align-content: end !important;
+    gap: 12px !important;
     padding-top: 0;
   }
 
@@ -621,10 +622,10 @@ body {
   }
 
   .onboarding-step-shell {
-    padding-top: max(20px, env(safe-area-inset-top, 0px) + 12px) !important;
+    padding-top: max(26px, env(safe-area-inset-top, 0px) + 18px) !important;
     padding-left: 18px !important;
     padding-right: 18px !important;
-    padding-bottom: max(34px, calc(env(safe-area-inset-bottom, 0px) + 28px)) !important;
+    padding-bottom: max(14px, calc(env(safe-area-inset-bottom, 0px) + 10px)) !important;
   }
 
   .onboarding-step-title {
@@ -642,7 +643,7 @@ body {
 
   .welcome-step .onboarding-step-actions {
     margin-top: auto !important;
-    padding-top: 14px;
+    padding-top: 10px;
   }
 
   .onboarding-step-cta {
@@ -680,15 +681,15 @@ body {
   }
 
   .auth-screen {
-    justify-content: flex-start;
-    padding-top: max(18px, env(safe-area-inset-top, 0px) + 12px);
-    padding-bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 20px));
+    justify-content: center;
+    padding-top: max(34px, env(safe-area-inset-top, 0px) + 24px);
+    padding-bottom: max(12px, calc(env(safe-area-inset-bottom, 0px) + 8px));
   }
 
   .auth-shell {
     padding: 16px;
     gap: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 0;
   }
 
   .auth-copy h1 {
@@ -745,6 +746,16 @@ body {
     font-size: 0.88rem !important;
   }
 
+  .protocol-step {
+    justify-content: center !important;
+    padding-top: max(34px, env(safe-area-inset-top, 0px) + 24px) !important;
+  }
+
+  .reality-check-step {
+    justify-content: space-between !important;
+    padding-top: max(32px, env(safe-area-inset-top, 0px) + 22px) !important;
+  }
+
   .pro-offer-stack {
     gap: 14px !important;
   }
@@ -766,8 +777,8 @@ body {
 
 @media (max-width: 520px) and (max-height: 860px) {
   .auth-screen {
-    padding-top: max(10px, env(safe-area-inset-top, 0px) + 6px);
-    padding-bottom: max(22px, calc(env(safe-area-inset-bottom, 0px) + 16px));
+    padding-top: max(18px, env(safe-area-inset-top, 0px) + 12px);
+    padding-bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) + 8px));
   }
 
   .auth-brand-row {
@@ -3169,6 +3180,43 @@ body {
   text-align: center;
   color: var(--text-secondary);
   font-size: 0.92rem;
+}
+
+.focus-warning-inline {
+  margin-top: 12px;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.blocker-setup-overlay {
+  padding: 32px 24px 24px;
+}
+
+.blocker-setup-card {
+  width: min(100%, 420px);
+  margin: 0 auto 22px;
+  padding: 18px 18px 12px;
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.blocker-setup-step {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.blocker-setup-step strong {
+  color: var(--text-main);
+}
+
+.blocker-setup-actions {
+  width: min(100%, 420px);
+  display: grid;
+  gap: 10px;
 }
 
 .app-toggle {
