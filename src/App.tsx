@@ -4647,7 +4647,7 @@ export default function App() {
     const notification = new Notification(title, {
       body,
       tag: `vellin-daily-${title}`,
-      icon: '/vellin-mark.svg'
+      icon: './vellin-mark.svg'
     });
     notification.onclick = () => {
       window.focus();
