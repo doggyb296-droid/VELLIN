@@ -1385,9 +1385,9 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '44px 24px 24px', minHeight: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'space-between' }}
+      style={{ padding: '50px 24px 12px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'space-between' }}
     >
-      <div className="welcome-step-copy" style={{ display: 'grid', gap: '16px', flex: 1, alignContent: 'center' }}>
+      <div className="welcome-step-copy" style={{ display: 'grid', gap: '16px', flex: 1, alignContent: 'end', marginTop: 'auto' }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -1406,7 +1406,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
           ))}
         </div>
       </div>
-      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '18px' }}>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '8px' }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
         </button>
@@ -1515,14 +1515,15 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
       initial={false}
       animate={{ opacity: 1, y: 0 }}
       className="onboarding-step-shell protocol-step"
-      style={{ padding: '32px 24px 56px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100%' }}
+      style={{ padding: '32px 24px 14px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', justifyContent: 'space-between' }}
     >
+      <div style={{ display: 'grid', gap: '18px', marginTop: 'auto' }}>
       <motion.div
-        initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.24, ease: 'easeOut' }}
-        style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginBottom: '24px' }}
-      >
+          initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.24, ease: 'easeOut' }}
+          style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginBottom: '24px' }}
+        >
         <div style={{ display: 'grid', placeItems: 'center', width: '72px', height: '72px', padding: '16px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(184, 240, 140, 0.28)' }}>
           <CheckCircle2 size={40} color="var(--accent-success)" />
         </div>
@@ -1540,7 +1541,8 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
            {points.map((pt, i) => <li key={i} style={{ color: 'var(--text-secondary)' }}><span style={{ color: 'var(--text-main)' }}>{pt}</span></li>)}
          </ul>
       </div>
-      <div className="onboarding-step-actions" style={{ marginTop: 'auto' }}>
+      </div>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '6px' }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%' }}>Continue</button>
       </div>
     </motion.div>
@@ -1624,7 +1626,8 @@ const AuthStep = ({
   };
 
   return (
-    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '30px 16px 12px' }}>
+    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '34px 16px 12px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <div style={{ display: 'grid', gap: '10px', marginTop: 'auto' }}>
       <div className="auth-brand-row">
         <BrandLockup subtitle="Focus infrastructure for real life." compact />
       </div>
@@ -1787,6 +1790,7 @@ const AuthStep = ({
           {getUiString(languageRegion, 'continueWithoutAccount')}
         </button>
       </div>
+      </div>
     </motion.div>
   );
 };
@@ -1907,25 +1911,37 @@ const AppSelectionStep = ({
 
 const DeviceUsageAccessStep = ({
   status,
+  blockerEnabled,
+  hasDistractionTargets,
   onAllow,
+  onOpenBlockerAccess,
   onContinue,
   onSkip,
   languageRegion
 }: {
   status: DeviceUsageAccessStatus,
+  blockerEnabled: boolean,
+  hasDistractionTargets: boolean,
   onAllow: () => void,
+  onOpenBlockerAccess: () => void,
   onContinue: () => void,
   onSkip: () => void,
   languageRegion: string
-}) => (
-  <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell" style={{ padding: '36px 24px 56px' }}>
-    <div style={{ display: 'grid', gap: '18px' }}>
+}) => {
+  const needsBlockerAccess = canUseNativeDeviceUsage() && hasDistractionTargets;
+  const isUsageReady = status === 'granted';
+  const isBlockerReady = !needsBlockerAccess || blockerEnabled;
+  const canMoveForward = isUsageReady && isBlockerReady;
+
+  return (
+  <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell" style={{ padding: '36px 24px 14px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <div style={{ display: 'grid', gap: '18px', marginTop: 'auto' }}>
       <BrandLockup subtitle="Screen time insights, explained gently." compact />
       <div className="glass-card" style={{ padding: '24px', display: 'grid', gap: '16px' }}>
         <div style={{ fontSize: '0.78rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 800 }}>Screen Time Data</div>
         <h2 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em', margin: 0 }}>{getUiString(languageRegion, 'screenTimeTitle')}</h2>
         <p style={{ color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>
-          This helps VELLIN make your Reality Check and craving insights feel personal instead of generic. On Android, VELLIN can open Usage Access settings and read last-week app time after you allow it. Android still does not let apps jump directly into the single VELLIN toggle, so you will still need to switch it on yourself in the Usage Access list.
+          This helps VELLIN make your Reality Check and craving insights feel personal instead of generic. On Android, VELLIN can open Usage Access settings and read last-week app time after you allow it.
         </p>
         <div className="review-insights" style={{ marginTop: '4px' }}>
           <div className="review-insight-item">See how much time you spent last week on the apps you want to block.</div>
@@ -1962,6 +1978,48 @@ const DeviceUsageAccessStep = ({
             Android will open the Usage Access settings screen next. Android does not let apps turn this on automatically, so you still need to switch on VELLIN yourself and then return here.
           </div>
         )}
+        {needsBlockerAccess && (
+          <div className="glass-card" style={{ padding: '18px', display: 'grid', gap: '12px', background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(139, 212, 255, 0.18)' }}>
+            <div style={{ fontSize: '0.78rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 800 }}>
+              App Blocking
+            </div>
+            <div style={{ color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+              To actually kick you out of blocked apps like Instagram during focus, Android also needs <strong style={{ color: 'var(--text-main)' }}>Blocker Access</strong> in Accessibility.
+            </div>
+            <div className="usage-access-steps" style={{ gap: '10px' }}>
+              <div className="usage-access-step">
+                <div className="usage-access-step-index">1</div>
+                <div>
+                  <div className="usage-access-step-title">Open Accessibility</div>
+                  <div className="usage-access-step-copy">VELLIN will take you to Android Accessibility settings.</div>
+                </div>
+              </div>
+              <div className="usage-access-step">
+                <div className="usage-access-step-index">2</div>
+                <div>
+                  <div className="usage-access-step-title">Find VELLIN</div>
+                  <div className="usage-access-step-copy">On most phones this is under <strong>Installed apps</strong>, <strong>Downloaded apps</strong>, or <strong>Accessibility services</strong>.</div>
+                </div>
+              </div>
+              <div className="usage-access-step">
+                <div className="usage-access-step-index">3</div>
+                <div>
+                  <div className="usage-access-step-title">Turn VELLIN on</div>
+                  <div className="usage-access-step-copy">Switch <strong>Use VELLIN</strong> on, then come back here.</div>
+                </div>
+              </div>
+            </div>
+            {blockerEnabled ? (
+              <div className="auth-notice auth-notice-success" style={{ margin: 0 }}>
+                Blocker Access is connected. VELLIN can now kick you out of blocked apps during focus.
+              </div>
+            ) : (
+              <button className="btn-secondary" onClick={onOpenBlockerAccess} style={{ width: '100%' }}>
+                Open Blocker Access
+              </button>
+            )}
+          </div>
+        )}
         {status === 'requested' && (
           <div className="auth-notice auth-notice-info">
             Settings have already been opened for you. On Android, enable Usage Access for VELLIN, return to the app, and then tap Continue.
@@ -1977,13 +2035,17 @@ const DeviceUsageAccessStep = ({
             Screen time data access is connected. VELLIN can now use your real last-week app usage in Reality Check.
           </div>
         )}
-        {status === 'granted' ? (
+        {canMoveForward ? (
           <button className="btn-primary" onClick={onContinue} style={{ width: '100%' }}>
             Continue
           </button>
         ) : (
-          <button className="btn-primary" onClick={onAllow} style={{ width: '100%' }}>
-            {status === 'requested' ? 'Open Settings Again' : getUiString(languageRegion, 'screenTimeYes')}
+          <button
+            className="btn-primary"
+            onClick={isUsageReady ? onOpenBlockerAccess : onAllow}
+            style={{ width: '100%' }}
+          >
+            {isUsageReady ? 'Set Up App Blocking' : status === 'requested' ? 'Open Settings Again' : getUiString(languageRegion, 'screenTimeYes')}
           </button>
         )}
         <button className="btn-secondary" onClick={onSkip} style={{ width: '100%' }}>
@@ -1992,7 +2054,8 @@ const DeviceUsageAccessStep = ({
       </div>
     </div>
   </motion.div>
-);
+  );
+};
 
 const ProPlanOfferStep = ({
   onSkip,
@@ -3082,9 +3145,10 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
       animate={{ opacity: 1, x: 0 }}
       exit={reduceMotion ? undefined : { opacity: 0, x: -12 }}
       className="onboarding-step-shell reality-check-step"
-      style={{ padding: '32px 24px 56px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}
+      style={{ padding: '34px 24px 12px', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', justifyContent: 'space-between' }}
     >
-      <div className="reality-check-hero" style={{ textAlign: 'center', marginBottom: '32px' }}>
+      <div style={{ marginTop: 'auto' }}>
+      <div className="reality-check-hero" style={{ textAlign: 'center', marginBottom: '24px' }}>
          <div style={{ width: '58px', height: '58px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '50%', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Activity color="var(--accent-danger)" size={32} />
          </div>
@@ -3105,7 +3169,7 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
          </div>
       </div>
 
-      <div className="glass-card bento-card" style={{ padding: '24px', borderLeft: '4px solid var(--accent-primary)', marginBottom: '40px' }}>
+      <div className="glass-card bento-card" style={{ padding: '24px', borderLeft: '4px solid var(--accent-primary)', marginBottom: '18px' }}>
          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px', letterSpacing: '0.05em', fontWeight: 600 }}>WHAT HAPPENS NEXT</div>
          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.3 }}>
            {hasConnectedUsageData
@@ -3114,7 +3178,8 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
          </div>
       </div>
 
-      <div className="onboarding-step-actions" style={{ marginTop: 'auto' }}>
+      </div>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '6px' }}>
         <button className="btn-primary onboarding-step-cta" style={{ width: '100%', padding: '18px', fontSize: '1.05rem' }} onClick={onNext}>
           It's time to change.
         </button>
@@ -6161,7 +6226,10 @@ export default function App() {
               <DeviceUsageAccessStep
                 key="usage-access"
                 status={deviceUsageAccessStatus}
+                blockerEnabled={isFocusBlockerEnabled}
+                hasDistractionTargets={userData.distractions.length > 0}
                 onAllow={requestDeviceUsageAccess}
+                onOpenBlockerAccess={openNativeBlockerSettings}
                 onContinue={nextOnboarding}
                 onSkip={skipDeviceUsageAccess}
                 languageRegion={resolvedPricingRegion}
