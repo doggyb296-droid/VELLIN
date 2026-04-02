@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#1A2742</color>
+    <color name="colorPrimaryDark">#101A2C</color>
+    <color name="colorAccent">#8BD4FF</color>
+    <color name="vellin_splash_background">#1A2742</color>
+    <color name="ic_launcher_background">#1A2742</color>
+</resources>
