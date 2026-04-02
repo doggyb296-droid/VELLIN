@@ -9,10 +9,16 @@ export interface WeeklyUsageEntry {
   totalMs: number;
 }
 
+export interface InstalledAppEntry {
+  label: string;
+  packageName: string;
+}
+
 interface DeviceUsagePlugin {
   getStatus(): Promise<{ status: DeviceUsageStatus }>;
   requestAccess(): Promise<{ status: DeviceUsageStatus }>;
   getWeeklyUsage(options: { packages: string[] }): Promise<{ status: DeviceUsageStatus; usage: WeeklyUsageEntry[] }>;
+  getInstalledApps(): Promise<{ apps: InstalledAppEntry[] }>;
 }
 
 const DeviceUsage = registerPlugin<DeviceUsagePlugin>('DeviceUsage');
@@ -31,6 +37,8 @@ export const DEVICE_USAGE_PACKAGES: Record<string, string[]> = {
 };
 
 export const canUseNativeDeviceUsage = () => Capacitor.getPlatform() === 'android';
+
+const normalizeAppLabel = (label: string) => label.trim().toLowerCase();
 
 export const readDeviceUsageStatus = async (): Promise<DeviceUsageStatus> => {
   if (!canUseNativeDeviceUsage()) return 'unsupported';
@@ -52,14 +60,40 @@ export const requestDeviceUsagePermission = async (): Promise<DeviceUsageStatus>
   }
 };
 
-export const getWeeklyUsageForLabels = async (labels: string[]) => {
+export const getInstalledApps = async (): Promise<InstalledAppEntry[]> => {
+  if (!canUseNativeDeviceUsage()) return [];
+
+  try {
+    const result = await DeviceUsage.getInstalledApps();
+    return Array.isArray(result.apps)
+      ? result.apps.filter((app) => Boolean(app?.label) && Boolean(app?.packageName))
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+export const getWeeklyUsageForLabels = async (labels: string[], installedApps: InstalledAppEntry[] = []) => {
   if (!canUseNativeDeviceUsage()) {
     return { status: 'unsupported' as DeviceUsageStatus, usageByLabel: {} as Record<string, number> };
   }
 
-  const labelPackagePairs = labels.flatMap((label) =>
-    (DEVICE_USAGE_PACKAGES[label] || []).map((pkg) => ({ label, pkg })),
-  );
+  const installedLabelLookup = installedApps.reduce<Record<string, string[]>>((acc, app) => {
+    const normalized = normalizeAppLabel(app.label);
+    acc[normalized] = acc[normalized] || [];
+    if (!acc[normalized].includes(app.packageName)) {
+      acc[normalized].push(app.packageName);
+    }
+    return acc;
+  }, {});
+
+  const labelPackagePairs = labels.flatMap((label) => {
+    const normalized = normalizeAppLabel(label);
+    const dynamicPackages = installedLabelLookup[normalized] || [];
+    const staticPackages = DEVICE_USAGE_PACKAGES[label] || [];
+    const packages = Array.from(new Set([...dynamicPackages, ...staticPackages]));
+    return packages.map((pkg) => ({ label, pkg }));
+  });
   const uniquePackages = Array.from(new Set(labelPackagePairs.map((pair) => pair.pkg)));
 
   try {

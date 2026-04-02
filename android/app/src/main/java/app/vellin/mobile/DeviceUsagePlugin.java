@@ -5,6 +5,8 @@ import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Build;
 import android.provider.Settings;
 
@@ -18,6 +20,11 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 
 @CapacitorPlugin(name = "DeviceUsage")
 public class DeviceUsagePlugin extends Plugin {
@@ -91,6 +98,57 @@ public class DeviceUsagePlugin extends Plugin {
 
         result.put("status", "granted");
         result.put("usage", usage);
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void getInstalledApps(PluginCall call) {
+        PackageManager packageManager = getContext().getPackageManager();
+        Intent launcherIntent = new Intent(Intent.ACTION_MAIN, null);
+        launcherIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+        List<ResolveInfo> activities = packageManager.queryIntentActivities(launcherIntent, PackageManager.MATCH_ALL);
+        List<JSObject> entries = new ArrayList<>();
+        Set<String> seenPackages = new HashSet<>();
+        String selfPackage = getContext().getPackageName();
+
+        for (ResolveInfo resolveInfo : activities) {
+            if (resolveInfo.activityInfo == null) continue;
+
+            String packageName = resolveInfo.activityInfo.packageName;
+            if (packageName == null || packageName.isEmpty() || packageName.equals(selfPackage) || seenPackages.contains(packageName)) {
+                continue;
+            }
+
+            CharSequence labelSequence = resolveInfo.loadLabel(packageManager);
+            String label = labelSequence == null ? packageName : labelSequence.toString().trim();
+            if (label.isEmpty()) {
+                label = packageName;
+            }
+
+            JSObject item = new JSObject();
+            item.put("label", label);
+            item.put("packageName", packageName);
+            entries.add(item);
+            seenPackages.add(packageName);
+        }
+
+        Collections.sort(entries, new Comparator<JSObject>() {
+            @Override
+            public int compare(JSObject left, JSObject right) {
+                String leftLabel = left.getString("label", "");
+                String rightLabel = right.getString("label", "");
+                return leftLabel.compareToIgnoreCase(rightLabel);
+            }
+        });
+
+        JSArray apps = new JSArray();
+        for (JSObject entry : entries) {
+            apps.put(entry);
+        }
+
+        JSObject result = new JSObject();
+        result.put("apps", apps);
         call.resolve(result);
     }
 

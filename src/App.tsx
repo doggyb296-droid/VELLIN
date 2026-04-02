@@ -42,7 +42,9 @@ import {
 } from './lib/mobileNotifications';
 import {
   canUseNativeDeviceUsage,
+  getInstalledApps,
   getWeeklyUsageForLabels,
+  type InstalledAppEntry,
   readDeviceUsageStatus,
   requestDeviceUsagePermission,
 } from './lib/deviceUsage';
@@ -222,6 +224,7 @@ interface PersistedState {
   hasUsedIntroTrial: boolean;
   introTrialStartedAt: string | null;
   membershipAutoRenew: boolean;
+  onboardingStep: OnboardingStep;
   scheduleBlocks: ScheduleBlock[];
   sessions: Session[];
   soundEnabled: boolean;
@@ -252,6 +255,27 @@ const DEFAULT_USER_DATA: UserData = {
   distractions: ['Instagram', 'TikTok'],
   mode: null,
   allowance: 4
+};
+
+const DEFAULT_DISTRACTION_APPS = ['Instagram', 'TikTok', 'X', 'YouTube', 'Facebook', 'Netflix', 'WhatsApp', 'Snapchat', 'Reddit', 'Pinterest'];
+
+const normalizeAppLabel = (value: string) => value.trim().toLowerCase();
+
+const mergeSelectableApps = (installedApps: InstalledAppEntry[]) => {
+  const seen = new Set<string>();
+  const merged = [...DEFAULT_DISTRACTION_APPS];
+
+  installedApps.forEach((app) => {
+    if (!app.label?.trim()) return;
+    merged.push(app.label.trim());
+  });
+
+  return merged.filter((label) => {
+    const normalized = normalizeAppLabel(label);
+    if (!normalized || seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
 };
 
 const createTodayISO = () => {
@@ -1115,6 +1139,7 @@ const getUiString = (countryCode: string, key: UiStringKey) =>
   UI_STRING_OVERRIDES[countryCode]?.[key] || UI_STRING_DEFAULTS[key];
 
 const ONBOARDING_FLOW_VERSION = 2;
+const ONBOARDING_RESTORABLE_STEPS: OnboardingStep[] = ['welcome', 'survey', 'recommendation', 'auth', 'appSelection', 'usageAccess', 'realityCheck', 'proPlan', 'completed'];
 
 const hasStoredSurveyAnswers = (value: unknown): value is string[] =>
   Array.isArray(value) && value.some((entry) => typeof entry === 'string' && entry.trim().length > 0);
@@ -1136,6 +1161,9 @@ const resolveRestoredOnboardingState = (saved: Partial<PersistedState>, initialR
     : 'unknown';
   const hasSurveyAnswers = hasStoredSurveyAnswers(saved.userData?.survey);
   const shouldRestartSetup = !hasCurrentOnboardingVersion || !hasSurveyAnswers;
+  const savedOnboardingStep = ONBOARDING_RESTORABLE_STEPS.includes(saved.onboardingStep as OnboardingStep)
+    ? (saved.onboardingStep as OnboardingStep)
+    : 'welcome';
 
   if (shouldRestartSetup) {
     return {
@@ -1155,7 +1183,7 @@ const resolveRestoredOnboardingState = (saved: Partial<PersistedState>, initialR
 
   return {
     hasCompletedOnboarding,
-    onboardingStep: hasCompletedOnboarding ? ('completed' as OnboardingStep) : ('welcome' as OnboardingStep),
+    onboardingStep: hasCompletedOnboarding ? ('completed' as OnboardingStep) : savedOnboardingStep,
   };
 };
 
@@ -1210,6 +1238,9 @@ const normalizePersistedState = (saved: Partial<PersistedState>): Partial<Persis
       : 'unknown',
     focusByDate: saved.focusByDate && typeof saved.focusByDate === 'object' ? saved.focusByDate : {},
     hasCompletedOnboarding: Boolean(saved.hasCompletedOnboarding),
+    onboardingStep: ONBOARDING_RESTORABLE_STEPS.includes(saved.onboardingStep as OnboardingStep)
+      ? (saved.onboardingStep as OnboardingStep)
+      : 'welcome',
     onboardingVersion: typeof saved.onboardingVersion === 'number' ? saved.onboardingVersion : 0,
     isPro: Boolean(saved.isPro),
     proPricingRegion: typeof saved.proPricingRegion === 'string' ? saved.proPricingRegion : 'auto',
@@ -1337,7 +1368,7 @@ const getAuthAvatarUrl = (user: SupabaseUser | null) => {
 
 
 const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageRegion: string }) => {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReducedMotion() || Capacitor.isNativePlatform();
   const welcomeHighlights = [
     'Build calmer screen habits',
     'Spot distraction spirals sooner',
@@ -1350,14 +1381,14 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '52px 24px 30px', minHeight: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'space-between' }}
+      style={{ padding: '44px 24px 24px', minHeight: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'space-between' }}
     >
-      <div className="welcome-step-copy" style={{ display: 'grid', gap: '18px', flex: 1, alignContent: 'start' }}>
+      <div className="welcome-step-copy" style={{ display: 'grid', gap: '16px', flex: 1, alignContent: 'center' }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}
-          style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}
+          style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}
         >
           <BrandLockup subtitle="Quiet the noise. Keep the signal." />
         </motion.div>
@@ -1383,6 +1414,8 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
 const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const selectionTimerRef = useRef<number | null>(null);
   
   const questions = [
     { q: "When do you feel most compelled to scroll?", options: ["Waking Up", "During Work Breaks", "Late at Night", "When Stressed"] },
@@ -1391,14 +1424,32 @@ const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
   ];
 
   const handleOption = (opt: string) => {
-    const newAnswers = [...answers, opt];
-    if (step < questions.length - 1) {
-      setAnswers(newAnswers);
-      setStep(step + 1);
-    } else {
-      onNext(newAnswers);
+    if (selectedOption) return;
+    setSelectedOption(opt);
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate(16);
     }
+
+    selectionTimerRef.current = window.setTimeout(() => {
+      const newAnswers = [...answers, opt];
+      if (step < questions.length - 1) {
+        setAnswers(newAnswers);
+        setStep(step + 1);
+      } else {
+        onNext(newAnswers);
+      }
+      setSelectedOption(null);
+      selectionTimerRef.current = null;
+    }, 130);
   };
+
+  useEffect(() => {
+    return () => {
+      if (selectionTimerRef.current) {
+        window.clearTimeout(selectionTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="onboarding-step-shell" style={{ padding: '32px 24px 56px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -1413,8 +1464,22 @@ const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
           <button
             key={i}
             className="glass-card onboarding-choice onboarding-static-card"
-            style={{ padding: '18px 20px', textAlign: 'left', color: 'var(--text-main)', fontSize: '1rem', border: '1px solid var(--card-border)' }}
+            style={{
+              padding: '18px 20px',
+              textAlign: 'left',
+              color: 'var(--text-main)',
+              fontSize: '1rem',
+              border: selectedOption === opt ? '1px solid rgba(184, 240, 140, 0.8)' : '1px solid var(--card-border)',
+              background: selectedOption === opt
+                ? 'linear-gradient(135deg, rgba(184, 240, 140, 0.18), rgba(139, 212, 255, 0.16))'
+                : undefined,
+              boxShadow: selectedOption === opt
+                ? '0 0 0 2px rgba(184, 240, 140, 0.16), 0 12px 28px rgba(5, 10, 24, 0.2)'
+                : undefined,
+              transform: selectedOption === opt ? 'scale(0.985)' : 'none',
+            }}
             onClick={() => handleOption(opt)}
+            aria-pressed={selectedOption === opt}
           >
             {opt}
           </button>
@@ -1426,7 +1491,7 @@ const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
 
 const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | null, onNext: () => void }) => {
   const trigger = surveyData?.[0] || 'Waking Up';
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReducedMotion() || Capacitor.isNativePlatform();
   let title = 'Friction Injection Protocol';
   let desc = 'A structured plan to rebuild your attention span by injecting mindful friction into habitual checking.';
   let points = [
@@ -1722,11 +1787,28 @@ const AuthStep = ({
   );
 };
 
-const AppSelectionStep = ({ onNext, languageRegion }: { onNext: (apps: string[]) => void, languageRegion: string }) => {
+const AppSelectionStep = ({
+  onNext,
+  languageRegion,
+  installedApps,
+  isLoadingInstalledApps,
+}: {
+  onNext: (apps: string[]) => void,
+  languageRegion: string,
+  installedApps: InstalledAppEntry[],
+  isLoadingInstalledApps: boolean,
+}) => {
   const [selected, setSelected] = useState<string[]>([]);
   const [showAllApps, setShowAllApps] = useState(false);
+  const [appSearch, setAppSearch] = useState('');
   const toggle = (name: string) => setSelected(prev => prev.includes(name) ? prev.filter(a => a !== name) : [...prev, name]);
-  const allApps = ['Instagram', 'TikTok', 'X', 'YouTube', 'Facebook', 'Netflix', 'WhatsApp', 'Snapchat', 'Reddit', 'Pinterest'];
+  const allApps = useMemo(() => mergeSelectableApps(installedApps), [installedApps]);
+  const featuredApps = useMemo(() => mergeSelectableApps(installedApps).slice(0, 6), [installedApps]);
+  const visibleInstalledApps = useMemo(() => {
+    const normalizedSearch = normalizeAppLabel(appSearch);
+    if (!normalizedSearch) return allApps;
+    return allApps.filter((app) => normalizeAppLabel(app).includes(normalizedSearch));
+  }, [allApps, appSearch]);
 
   return (
     <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell" style={{ padding: '36px 24px 56px' }}>
@@ -1734,14 +1816,15 @@ const AppSelectionStep = ({ onNext, languageRegion }: { onNext: (apps: string[])
        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>{getUiString(languageRegion, 'distractionsSubtitle')}</p>
        
       <div className="logo-grid" style={{ marginBottom: '32px' }}>
-        {['Instagram', 'TikTok', 'X', 'YouTube', 'Facebook', 'Netflix'].map((app, index) => (
+        {featuredApps.map((app, index) => (
           <div
             key={`${app || 'selected-app'}-${index}`}
             className={`glass-card selectable-card onboarding-static-card ${selected.includes(app) ? 'selected' : ''}`}
             onClick={() => toggle(app)}
+            aria-pressed={selected.includes(app)}
           >
               {selected.includes(app) && <div className="selectable-check-badge"><CheckCircle2 size={14} /></div>}
-              <img src={APP_LOGOS[app]} alt={app} />
+              {APP_LOGOS[app] ? <img src={APP_LOGOS[app]} alt={app} /> : <div className="custom-app-icon selectable-app-fallback">{app.charAt(0)}</div>}
               <div style={{ fontSize: '0.75rem', fontWeight: 600, color: selected.includes(app) ? 'var(--text-main)' : 'var(--text-secondary)' }}>{app}</div>
            </div>
         ))}
@@ -1757,8 +1840,17 @@ const AppSelectionStep = ({ onNext, languageRegion }: { onNext: (apps: string[])
              <div style={{ fontWeight: 700 }}>{getUiString(languageRegion, 'allApps')}</div>
              <button className="btn-secondary" style={{ padding: '8px 12px' }} onClick={() => setShowAllApps(false)}>{getUiString(languageRegion, 'close')}</button>
            </div>
+           <div className="all-apps-search-shell">
+             <input
+               className="auth-input search"
+               placeholder={isLoadingInstalledApps ? 'Loading your installed apps...' : 'Search installed apps'}
+               value={appSearch}
+               onChange={(event) => setAppSearch(event.target.value)}
+               disabled={isLoadingInstalledApps}
+             />
+           </div>
            <div className="all-apps-list">
-            {allApps.map((app, index) => {
+            {visibleInstalledApps.map((app, index) => {
               const active = selected.includes(app);
               return (
                 <div key={`${app || 'all-app'}-${index}`} className="mock-app-row" onClick={() => toggle(app)}>
@@ -1770,6 +1862,9 @@ const AppSelectionStep = ({ onNext, languageRegion }: { onNext: (apps: string[])
                  </div>
                );
              })}
+             {!isLoadingInstalledApps && visibleInstalledApps.length === 0 && (
+               <div className="all-apps-empty-state">No installed apps matched that search.</div>
+             )}
            </div>
          </div>
        )}
@@ -1801,7 +1896,7 @@ const DeviceUsageAccessStep = ({
         <div style={{ fontSize: '0.78rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 800 }}>Screen Time Data</div>
         <h2 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em', margin: 0 }}>{getUiString(languageRegion, 'screenTimeTitle')}</h2>
         <p style={{ color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>
-          This helps VELLIN make your Reality Check and craving insights feel personal instead of generic. On Android, VELLIN can open Usage Access settings and read last-week app time after you allow it. On iPhone, this comes from Screen Time and still needs the Apple-native entitlement build.
+          This helps VELLIN make your Reality Check and craving insights feel personal instead of generic. On Android, VELLIN can open Usage Access settings and read last-week app time after you allow it. Android still does not let apps jump directly into the single VELLIN toggle, so you will still need to switch it on yourself in the Usage Access list.
         </p>
         <div className="review-insights" style={{ marginTop: '4px' }}>
           <div className="review-insight-item">See how much time you spent last week on the apps you want to block.</div>
@@ -1821,7 +1916,7 @@ const DeviceUsageAccessStep = ({
               <div className="usage-access-step-index">2</div>
               <div>
                 <div className="usage-access-step-title">Turn on VELLIN</div>
-                <div className="usage-access-step-copy">Find VELLIN in the list and switch Usage Access on.</div>
+                <div className="usage-access-step-copy">Look for <strong>VELLIN</strong> in the list and switch Usage Access on.</div>
               </div>
             </div>
             <div className="usage-access-step">
@@ -1906,7 +2001,7 @@ const ProPlanOfferStep = ({
       className="pro-offer-step-shell"
     >
       <div className="pro-offer-content">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'center', paddingBottom: '20px' }}>
+        <div className="pro-offer-stack" style={{ display: 'flex', flexDirection: 'column', gap: '18px', textAlign: 'center', paddingBottom: '12px' }}>
         <div className="pro-offer-header-row">
           <div style={{ fontSize: '0.75rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 800 }}>VELLIN Pro</div>
           <button className="btn-secondary pro-offer-close" onClick={onSkip} type="button" aria-label="Close Pro offer">
@@ -1915,7 +2010,7 @@ const ProPlanOfferStep = ({
         </div>
         <h2 className="pro-offer-title" style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '-0.03em', margin: 0 }}>{offerHeading}</h2>
         <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>{offerSubheading}</p>
-        <div className="glass-card" style={{ padding: '24px', textAlign: 'left', display: 'grid', gap: '14px', background: 'linear-gradient(135deg, rgba(184, 240, 140, 0.14), rgba(139, 212, 255, 0.1))', borderColor: 'rgba(184, 240, 140, 0.28)', borderRadius: '28px', boxShadow: '0 18px 50px rgba(5, 10, 24, 0.28)' }}>
+        <div className="glass-card pro-offer-card" style={{ padding: '22px', textAlign: 'left', display: 'grid', gap: '12px', background: 'linear-gradient(135deg, rgba(184, 240, 140, 0.14), rgba(139, 212, 255, 0.1))', borderColor: 'rgba(184, 240, 140, 0.28)', borderRadius: '28px', boxShadow: '0 18px 50px rgba(5, 10, 24, 0.28)' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
             <div>
               <div style={{ fontSize: '0.8rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 800, marginBottom: '8px' }}>{regionalCopy.trialLabel}</div>
@@ -1941,7 +2036,7 @@ const ProPlanOfferStep = ({
             'Extra focus sessions added to your plan immediately',
             'Prevention suggestions and timing guidance'
           ].map((item, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div key={idx} className="pro-offer-feature-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent-success)', boxShadow: '0 0 12px rgba(184, 240, 140, 0.8)' }} />
               <span style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>{item}</span>
             </div>
@@ -2832,15 +2927,31 @@ const ForecastPage = ({ isPro, onUpgrade, onStartFocus, onAction, blockedByApp, 
   );
 };
 
-const Blocklist = ({ distractions, onChange, embedded = false }: { distractions: string[], onChange: (next: string[]) => void, embedded?: boolean }) => {
+const Blocklist = ({
+  distractions,
+  onChange,
+  embedded = false,
+  installedApps,
+}: {
+  distractions: string[],
+  onChange: (next: string[]) => void,
+  embedded?: boolean,
+  installedApps: InstalledAppEntry[],
+}) => {
   const [showAllApps, setShowAllApps] = useState(false);
+  const [appSearch, setAppSearch] = useState('');
   const toggle = (app: string) => {
     const next = distractions.includes(app) ? distractions.filter(x => x !== app) : [...distractions, app];
     onChange(next);
   };
 
-  const allApps = ['Instagram', 'TikTok', 'X', 'YouTube', 'Facebook', 'Netflix', 'WhatsApp', 'Snapchat', 'Reddit', 'Pinterest'];
-  const visibleApps = showAllApps ? allApps : allApps.slice(0, 6);
+  const allApps = useMemo(() => mergeSelectableApps(installedApps), [installedApps]);
+  const filteredApps = useMemo(() => {
+    const normalizedSearch = normalizeAppLabel(appSearch);
+    if (!normalizedSearch) return allApps;
+    return allApps.filter((app) => normalizeAppLabel(app).includes(normalizedSearch));
+  }, [allApps, appSearch]);
+  const visibleApps = allApps.slice(0, 6);
 
   return (
     <motion.div initial={false} animate={{ opacity: 1 }} style={embedded ? { display: 'grid', gap: '12px' } : { padding: '24px' }}>
@@ -2874,43 +2985,76 @@ const Blocklist = ({ distractions, onChange, embedded = false }: { distractions:
           {showAllApps ? 'Show fewer apps' : embedded ? 'Show more apps' : 'Show all apps'}
         </button>
       </div>
+      {showAllApps && (
+        <div style={{ marginTop: '14px', display: 'grid', gap: '10px' }}>
+          <input
+            className="auth-input search"
+            placeholder="Search installed apps"
+            value={appSearch}
+            onChange={(event) => setAppSearch(event.target.value)}
+          />
+          <div className="glass-card" style={{ maxHeight: embedded ? '280px' : '360px', overflowY: 'auto', padding: '8px 0' }}>
+            {filteredApps.map((app, index) => {
+              const isActive = distractions.includes(app);
+              return (
+                <button
+                  key={`${app || 'searchable-app'}-${index}`}
+                  type="button"
+                  className="mock-app-row"
+                  style={{ width: '100%', background: 'transparent', border: 'none' }}
+                  onClick={() => toggle(app)}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {APP_LOGOS[app] ? <img src={APP_LOGOS[app]} style={{ width: '34px', height: '34px', borderRadius: '8px' }} alt={app} /> : <div className="custom-app-icon">{app.charAt(0)}</div>}
+                    <span>{app}</span>
+                  </div>
+                  <div className={`app-toggle ${isActive ? 'active' : ''}`}>{isActive && <CheckCircle2 size={14} />}</div>
+                </button>
+              );
+            })}
+            {filteredApps.length === 0 && <div className="all-apps-empty-state">No installed apps matched that search.</div>}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };
 
 const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlockedUsageByApp, onNext }: { distractions: string[], deviceUsageAccessStatus: DeviceUsageAccessStatus, weeklyBlockedUsageByApp: Record<string, number>, onNext: () => void }) => {
+  const reduceMotion = useReducedMotion() || Capacitor.isNativePlatform();
   const selectedCount = Math.max(1, distractions.length);
   const distractionLabel = distractions.length ? distractions.join(', ') : 'your chosen distractions';
   const hasConnectedUsageData = deviceUsageAccessStatus === 'granted';
   const deviceUsageSupported = canUseNativeDeviceUsage();
   const topUsageEntry = Object.entries(weeklyBlockedUsageByApp).sort((a, b) => b[1] - a[1])[0];
-  const topUsageText = topUsageEntry
+  const hasMeaningfulUsageData = Boolean(topUsageEntry && topUsageEntry[1] > 0);
+  const topUsageText = hasMeaningfulUsageData && topUsageEntry
     ? `${topUsageEntry[0]} took ${Math.round(topUsageEntry[1] / 60000)} minutes last week.`
     : deviceUsageSupported
-      ? 'We are waiting for real weekly app-usage data to populate here.'
+      ? 'Usage access is connected. VELLIN is waiting for Android to return real last-week app time here.'
       : 'Mobile web cannot read Screen Time or Usage Access directly, so VELLIN is using your setup answers here for now.';
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 12 }}
+      initial={reduceMotion ? false : { opacity: 0, x: 12 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -12 }}
-      className="onboarding-step-shell"
+      exit={reduceMotion ? undefined : { opacity: 0, x: -12 }}
+      className="onboarding-step-shell reality-check-step"
       style={{ padding: '32px 24px 56px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}
     >
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-         <div style={{ width: '64px', height: '64px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '50%', margin: '0 auto 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="reality-check-hero" style={{ textAlign: 'center', marginBottom: '32px' }}>
+         <div style={{ width: '58px', height: '58px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '50%', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Activity color="var(--accent-danger)" size={32} />
          </div>
-         <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '16px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Reality Check</h2>
-         <div style={{ fontSize: '4.5rem', fontWeight: 900, color: 'var(--accent-danger)', lineHeight: 1, textShadow: '0 4px 20px rgba(239, 68, 68, 0.3)' }}>{selectedCount}</div>
+         <h2 className="reality-check-kicker" style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '14px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Reality Check</h2>
+         <div className="reality-check-count" style={{ fontSize: '4rem', fontWeight: 900, color: 'var(--accent-danger)', lineHeight: 1, textShadow: '0 4px 20px rgba(239, 68, 68, 0.3)' }}>{selectedCount}</div>
          
-         <p style={{ fontSize: '1.1rem', marginTop: '24px', color: 'var(--text-main)', fontWeight: 500, lineHeight: 1.6 }}>
+         <p className="reality-check-copy" style={{ fontSize: '1rem', marginTop: '20px', color: 'var(--text-main)', fontWeight: 500, lineHeight: 1.6 }}>
            {hasConnectedUsageData
              ? `We are now using your connected device usage data to review ${distractionLabel}.`
              : <>You marked <b style={{ color: 'var(--accent-danger)', fontSize: '1.3rem' }}>{selectedCount}</b> distraction {selectedCount === 1 ? 'trigger' : 'triggers'}: {distractionLabel}.</>}
          </p>
-         <div style={{ fontSize: '1rem', marginTop: '16px', color: 'var(--text-secondary)' }}>
+         <div className="reality-check-subcopy" style={{ fontSize: '0.95rem', marginTop: '14px', color: 'var(--text-secondary)' }}>
            {hasConnectedUsageData
              ? topUsageText
              : deviceUsageSupported
@@ -2937,7 +3081,7 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
   );
 };
 
-const Profile = ({ totalSessions, totalReclaimed, streak, isDarkMode, setIsDarkMode, currentLevel, totalXP, currentXPProgress, xpToNextLevel, dailyGoalHits, taskCompletions, dailyGoalSeconds, setDailyGoalSeconds, notificationsEnabled, onToggleNotifications, notificationPermissionLabel, soundEnabled, setSoundEnabled, breakReminderMins, setBreakReminderMins, distractions, onUpdateDistractions, isPro, onOpenProPlan, onRetakeSetup, onSignOut, onDeleteAccount, onOpenAuth, onLeaveGuestMode, onOpenUsageAccess, deviceUsageAccessStatus, accountEmail, username, onSaveUsername, avatarUrl, avatarInitials, isAuthenticated, proPricingRegion, onSetProPricingRegion, localizedProPrice, localizedProPriceNote, hasUsedIntroTrial, isIntroTrialActive, trialDaysLeft, membershipAutoRenew, onCancelMembershipRenewal, regionalCopy }: { totalSessions: number, totalReclaimed: number, streak: number, isDarkMode: boolean, setIsDarkMode: (v: boolean) => void, currentLevel: number, totalXP: number, currentXPProgress: number, xpToNextLevel: number, dailyGoalHits: number, taskCompletions: number, dailyGoalSeconds: number, setDailyGoalSeconds: (v: number) => void, notificationsEnabled: boolean, onToggleNotifications: () => void, notificationPermissionLabel: string, soundEnabled: boolean, setSoundEnabled: (v: boolean) => void, breakReminderMins: number, setBreakReminderMins: (v: number) => void, distractions: string[], onUpdateDistractions: (next: string[]) => void, isPro: boolean, onOpenProPlan: () => void, onRetakeSetup: () => void, onSignOut: () => void, onDeleteAccount: () => void, onOpenAuth: () => void, onLeaveGuestMode: () => void, onOpenUsageAccess: () => void, deviceUsageAccessStatus: DeviceUsageAccessStatus, accountEmail: string, username: string, onSaveUsername: (nextUsername: string) => Promise<{ ok: boolean, message: string, username?: string }>, avatarUrl: string | null, avatarInitials: string, isAuthenticated: boolean, proPricingRegion: PricingRegionPreference, onSetProPricingRegion: (value: PricingRegionPreference) => void, localizedProPrice: string, localizedProPriceNote: string, hasUsedIntroTrial: boolean, isIntroTrialActive: boolean, trialDaysLeft: number, membershipAutoRenew: boolean, onCancelMembershipRenewal: () => void, regionalCopy: RegionalUiCopy }) => {
+const Profile = ({ totalSessions, totalReclaimed, streak, isDarkMode, setIsDarkMode, currentLevel, totalXP, currentXPProgress, xpToNextLevel, dailyGoalHits, taskCompletions, dailyGoalSeconds, setDailyGoalSeconds, notificationsEnabled, onToggleNotifications, notificationPermissionLabel, soundEnabled, setSoundEnabled, breakReminderMins, setBreakReminderMins, distractions, onUpdateDistractions, installedApps, isPro, onOpenProPlan, onRetakeSetup, onSignOut, onDeleteAccount, onOpenAuth, onLeaveGuestMode, onOpenUsageAccess, deviceUsageAccessStatus, accountEmail, username, onSaveUsername, avatarUrl, avatarInitials, isAuthenticated, proPricingRegion, onSetProPricingRegion, localizedProPrice, localizedProPriceNote, hasUsedIntroTrial, isIntroTrialActive, trialDaysLeft, membershipAutoRenew, onCancelMembershipRenewal, regionalCopy }: { totalSessions: number, totalReclaimed: number, streak: number, isDarkMode: boolean, setIsDarkMode: (v: boolean) => void, currentLevel: number, totalXP: number, currentXPProgress: number, xpToNextLevel: number, dailyGoalHits: number, taskCompletions: number, dailyGoalSeconds: number, setDailyGoalSeconds: (v: number) => void, notificationsEnabled: boolean, onToggleNotifications: () => void, notificationPermissionLabel: string, soundEnabled: boolean, setSoundEnabled: (v: boolean) => void, breakReminderMins: number, setBreakReminderMins: (v: number) => void, distractions: string[], onUpdateDistractions: (next: string[]) => void, installedApps: InstalledAppEntry[], isPro: boolean, onOpenProPlan: () => void, onRetakeSetup: () => void, onSignOut: () => void, onDeleteAccount: () => void, onOpenAuth: () => void, onLeaveGuestMode: () => void, onOpenUsageAccess: () => void, deviceUsageAccessStatus: DeviceUsageAccessStatus, accountEmail: string, username: string, onSaveUsername: (nextUsername: string) => Promise<{ ok: boolean, message: string, username?: string }>, avatarUrl: string | null, avatarInitials: string, isAuthenticated: boolean, proPricingRegion: PricingRegionPreference, onSetProPricingRegion: (value: PricingRegionPreference) => void, localizedProPrice: string, localizedProPriceNote: string, hasUsedIntroTrial: boolean, isIntroTrialActive: boolean, trialDaysLeft: number, membershipAutoRenew: boolean, onCancelMembershipRenewal: () => void, regionalCopy: RegionalUiCopy }) => {
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [usernameDraft, setUsernameDraft] = useState(username);
@@ -3172,7 +3316,7 @@ const Profile = ({ totalSessions, totalReclaimed, streak, isDarkMode, setIsDarkM
               <span className="pro-pill">Shield</span>
             </div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', marginBottom: '12px' }}>Choose which apps get blocked automatically when a focus task or session starts.</div>
-            <Blocklist distractions={distractions} onChange={onUpdateDistractions} embedded />
+              <Blocklist distractions={distractions} onChange={onUpdateDistractions} embedded installedApps={installedApps} />
          </div>
 
          <div className="glass-card" style={{ padding: '20px' }}>
@@ -4002,7 +4146,10 @@ export default function App() {
   const [introTrialStartedAt, setIntroTrialStartedAt] = useState<string | null>(persistedState.introTrialStartedAt ?? null);
   const [membershipAutoRenew, setMembershipAutoRenew] = useState(persistedState.membershipAutoRenew ?? true);
   const [trialNow, setTrialNow] = useState(() => Date.now());
+  const [installedApps, setInstalledApps] = useState<InstalledAppEntry[]>([]);
+  const [isLoadingInstalledApps, setIsLoadingInstalledApps] = useState(() => canUseNativeDeviceUsage());
   const mainScrollRef = useRef<HTMLElement | null>(null);
+  const previousUsageStatusRef = useRef<DeviceUsageAccessStatus>(persistedState.deviceUsageAccessStatus ?? 'unknown');
   const resolvedPricingRegion = proPricingRegion === 'auto' ? detectedPricingRegion : proPricingRegion;
   const regionalCopy = useMemo(() => getRegionalUiCopy(resolvedPricingRegion), [resolvedPricingRegion]);
 
@@ -4021,8 +4168,33 @@ export default function App() {
     return () => window.clearInterval(timer);
   }, []);
   useEffect(() => {
+    if (!canUseNativeDeviceUsage()) return;
+    let cancelled = false;
+    void (async () => {
+      const apps = await getInstalledApps();
+      if (!cancelled) {
+        setInstalledApps(apps);
+        setIsLoadingInstalledApps(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const scrollVisibleSurfaceToTop = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
     mainScrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
-  }, [activeTab]);
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll<HTMLElement>('.onboarding-step-shell, .auth-screen, .pro-offer-step-shell, .all-apps-list').forEach((node) => {
+        node.scrollTo({ top: 0, behavior: 'auto' });
+      });
+    }
+  }, []);
+  useEffect(() => {
+    scrollVisibleSurfaceToTop();
+  }, [activeTab, onboardingStep, showProOffer, showProPlan, scrollVisibleSurfaceToTop]);
   const profileAvatarUrl = useMemo(() => getAuthAvatarUrl(authUser), [authUser]);
   const profileAvatarInitials = useMemo(() => getAvatarInitials(userData.name, authUser?.email ?? ''), [authUser?.email, userData.name]);
   const fallbackSocialUsername = useMemo(() => (
@@ -4130,6 +4302,7 @@ export default function App() {
     userData,
     focusScore,
     hasCompletedOnboarding,
+    onboardingStep,
     onboardingVersion: ONBOARDING_FLOW_VERSION,
     isDarkMode,
     isPro,
@@ -4155,7 +4328,7 @@ export default function App() {
     totalSessions,
     totalReclaimed,
     unlockedAchievements
-  }), [activeTab, blockedByApp, blockedCount, breakReminderMins, completedTaskIds, dailyGoalHits, dailyGoalSeconds, deviceUsageAccessStatus, focusByDate, userData, focusScore, hasCompletedOnboarding, isDarkMode, isPro, lastFocusDate, lastGoalDate, lastReclaimedDate, maxStreak, notificationsEnabled, phonePickups, proPlan, proPricingRegion, detectedPricingRegion, hasUsedIntroTrial, introTrialStartedAt, membershipAutoRenew, scheduleBlocks, sessions, soundEnabled, streak, taskCompletions, tasks, todayReclaimed, totalSessions, totalReclaimed, unlockedAchievements]);
+  }), [activeTab, blockedByApp, blockedCount, breakReminderMins, completedTaskIds, dailyGoalHits, dailyGoalSeconds, deviceUsageAccessStatus, focusByDate, userData, focusScore, hasCompletedOnboarding, onboardingStep, isDarkMode, isPro, lastFocusDate, lastGoalDate, lastReclaimedDate, maxStreak, notificationsEnabled, phonePickups, proPlan, proPricingRegion, detectedPricingRegion, hasUsedIntroTrial, introTrialStartedAt, membershipAutoRenew, scheduleBlocks, sessions, soundEnabled, streak, taskCompletions, tasks, todayReclaimed, totalSessions, totalReclaimed, unlockedAchievements]);
 
   const buildProfilePayload = useCallback((userId: string): SupabaseProfileRow => ({
     user_id: userId,
@@ -4859,6 +5032,20 @@ export default function App() {
     }
     setOnboardingStep(nextStep);
   }, [completeOnboardingFlow, deviceUsageAccessStatus, isPro, isRetakingSetup, onboardingStep]);
+  useEffect(() => {
+    const previousStatus = previousUsageStatusRef.current;
+    if (
+      previousStatus !== 'granted'
+      && deviceUsageAccessStatus === 'granted'
+      && onboardingStep === 'usageAccess'
+      && !usageAccessStandalone
+    ) {
+      window.setTimeout(() => {
+        nextOnboarding();
+      }, 0);
+    }
+    previousUsageStatusRef.current = deviceUsageAccessStatus;
+  }, [deviceUsageAccessStatus, nextOnboarding, onboardingStep, usageAccessStandalone]);
 
   const getNativeDeleteRequestHeaders = useCallback(async () => {
     if (!supabase) {
@@ -5681,7 +5868,7 @@ export default function App() {
     if (deviceUsageAccessStatus !== 'granted') return;
     let cancelled = false;
     void (async () => {
-      const result = await getWeeklyUsageForLabels(userData.distractions);
+      const result = await getWeeklyUsageForLabels(userData.distractions, installedApps);
       if (!cancelled && result.status === 'granted') {
         setWeeklyBlockedUsageByApp(result.usageByLabel);
       }
@@ -5689,7 +5876,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [deviceUsageAccessStatus, userData.distractions]);
+  }, [deviceUsageAccessStatus, installedApps, userData.distractions]);
 
   const visibleWeeklyBlockedUsageByApp = deviceUsageAccessStatus === 'granted'
     ? weeklyBlockedUsageByApp
@@ -5838,7 +6025,15 @@ export default function App() {
                 languageRegion={resolvedPricingRegion}
               />
             )}
-            {onboardingStep === 'appSelection' && <AppSelectionStep key="apps" languageRegion={resolvedPricingRegion} onNext={(apps) => { setUserData({...userData, distractions: apps}); nextOnboarding(); }} />}
+            {onboardingStep === 'appSelection' && (
+              <AppSelectionStep
+                key="apps"
+                languageRegion={resolvedPricingRegion}
+                installedApps={installedApps}
+                isLoadingInstalledApps={isLoadingInstalledApps}
+                onNext={(apps) => { setUserData({...userData, distractions: apps}); nextOnboarding(); }}
+              />
+            )}
             {onboardingStep === 'usageAccess' && (
               <DeviceUsageAccessStep
                 key="usage-access"
@@ -6011,6 +6206,7 @@ export default function App() {
               setBreakReminderMins={setBreakReminderMins}
               distractions={userData.distractions}
               onUpdateDistractions={(next) => setUserData(prev => ({ ...prev, distractions: next }))}
+              installedApps={installedApps}
               isPro={hasProAccess}
               onOpenProPlan={openProOffer}
               onRetakeSetup={retakeSetupQuestions}

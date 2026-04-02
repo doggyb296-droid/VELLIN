@@ -112,7 +112,7 @@ body {
   max-width: 500px;
   margin: 0 auto;
   min-height: 100dvh;
-  height: 100dvh;
+  height: auto;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -136,6 +136,10 @@ body {
   font-size: 0.96rem;
   font-weight: 700;
   line-height: 1.4;
+}
+
+.welcome-step-copy {
+  justify-content: center;
 }
 
 .brand-lockup {
@@ -594,14 +598,14 @@ body {
 
 @media (max-width: 520px) {
   .welcome-step {
-    justify-content: flex-start !important;
+    justify-content: space-between !important;
     gap: 14px;
-    padding-top: max(44px, env(safe-area-inset-top, 0px) + 28px) !important;
+    padding-top: max(28px, env(safe-area-inset-top, 0px) + 18px) !important;
     padding-bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 18px)) !important;
   }
 
   .welcome-step-copy {
-    justify-content: flex-start !important;
+    justify-content: center !important;
     gap: 14px !important;
     padding-top: 0;
   }
@@ -629,7 +633,7 @@ body {
   }
 
   .welcome-step .onboarding-step-title {
-    font-size: 2.05rem !important;
+    font-size: 1.95rem !important;
   }
 
   .welcome-step .brand-lockup {
@@ -677,13 +681,13 @@ body {
 
   .auth-screen {
     justify-content: flex-start;
-    padding-top: max(14px, env(safe-area-inset-top, 0px) + 8px);
+    padding-top: max(18px, env(safe-area-inset-top, 0px) + 12px);
     padding-bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 20px));
   }
 
   .auth-shell {
-    padding: 18px;
-    gap: 12px;
+    padding: 16px;
+    gap: 10px;
     margin-bottom: 10px;
   }
 
@@ -697,7 +701,7 @@ body {
   }
 
   .auth-brand-row {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .auth-mode-tab,
@@ -707,13 +711,56 @@ body {
   }
 
   .auth-input {
-    padding: 14px 16px;
+    padding: 13px 15px;
     font-size: 0.96rem;
   }
 
   .auth-helper {
     font-size: 0.78rem;
     line-height: 1.45;
+  }
+
+  .all-apps-search-shell {
+    padding: 12px 16px 0;
+  }
+
+  .all-apps-list {
+    padding: 14px 16px 20px;
+  }
+
+  .reality-check-kicker {
+    font-size: 0.95rem !important;
+  }
+
+  .reality-check-count {
+    font-size: 3.2rem !important;
+  }
+
+  .reality-check-copy {
+    font-size: 0.96rem !important;
+    margin-top: 16px !important;
+  }
+
+  .reality-check-subcopy {
+    font-size: 0.88rem !important;
+  }
+
+  .pro-offer-stack {
+    gap: 14px !important;
+  }
+
+  .pro-offer-card {
+    padding: 16px !important;
+    gap: 10px !important;
+    border-radius: 22px !important;
+  }
+
+  .pro-offer-title {
+    font-size: 1.6rem !important;
+  }
+
+  .pro-offer-feature-row span {
+    font-size: 0.88rem !important;
   }
 }
 
@@ -3102,6 +3149,10 @@ body {
   padding: 24px;
 }
 
+.all-apps-search-shell {
+  padding: 16px 20px 0;
+}
+
 .mock-app-row {
   display: flex;
   align-items: center;
@@ -3112,6 +3163,13 @@ body {
   transition: background 0.2s;
 }
 .mock-app-row:hover { background: rgba(255,255,255,0.02); }
+
+.all-apps-empty-state {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
 
 .app-toggle {
   width: 24px;
@@ -3284,6 +3342,13 @@ body {
   position: relative;
 }
 
+.selectable-app-fallback {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 12px;
+  border-radius: 12px;
+}
+
 .selectable-card.selected {
   background:
     radial-gradient(circle at 50% 18%, rgba(184, 240, 140, 0.24), transparent 38%),
@@ -3318,6 +3383,13 @@ body {
   background: linear-gradient(135deg, rgba(184, 240, 140, 1), rgba(139, 212, 255, 0.9));
   color: #10203a;
   box-shadow: 0 10px 24px rgba(184, 240, 140, 0.28);
+}
+
+.reality-check-copy,
+.reality-check-subcopy {
+  max-width: 30rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .progress-dots {
