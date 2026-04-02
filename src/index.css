@@ -140,6 +140,7 @@ body {
 
 .welcome-step-copy {
   justify-content: center;
+  min-height: 0;
 }
 
 .brand-lockup {
@@ -599,15 +600,15 @@ body {
 @media (max-width: 520px) {
   .welcome-step {
     justify-content: flex-end !important;
-    gap: 14px;
+    gap: 10px;
     padding-top: max(18px, env(safe-area-inset-top, 0px) + 10px) !important;
     padding-bottom: max(8px, calc(env(safe-area-inset-bottom, 0px) + 4px)) !important;
   }
 
   .welcome-step-copy {
-    justify-content: end !important;
+    justify-content: flex-end !important;
     align-content: end !important;
-    gap: 12px !important;
+    gap: 10px !important;
     padding-top: 0;
   }
 
@@ -643,7 +644,7 @@ body {
 
   .welcome-step .onboarding-step-actions {
     margin-top: 0 !important;
-    padding-top: 4px;
+    padding-top: 2px;
     padding-bottom: 0;
   }
 
@@ -749,17 +750,17 @@ body {
 
   .protocol-step {
     justify-content: flex-end !important;
-    padding-top: max(18px, env(safe-area-inset-top, 0px) + 10px) !important;
+    padding-top: max(14px, env(safe-area-inset-top, 0px) + 8px) !important;
   }
 
   .reality-check-step {
     justify-content: flex-end !important;
-    padding-top: max(18px, env(safe-area-inset-top, 0px) + 10px) !important;
+    padding-top: max(14px, env(safe-area-inset-top, 0px) + 8px) !important;
   }
 
   .usage-access-step-shell {
     justify-content: flex-end !important;
-    padding-top: max(18px, env(safe-area-inset-top, 0px) + 10px) !important;
+    padding-top: max(14px, env(safe-area-inset-top, 0px) + 8px) !important;
   }
 
   .pro-offer-stack {

@@ -1387,7 +1387,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       className="onboarding-step onboarding-step-shell welcome-step"
       style={{ padding: '28px 24px 8px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', textAlign: 'center', gap: '18px' }}
     >
-      <div className="welcome-step-copy" style={{ display: 'grid', gap: '16px' }}>
+      <div className="welcome-step-copy" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '16px', flex: 1 }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -1436,15 +1436,17 @@ const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
 
     selectionTimerRef.current = window.setTimeout(() => {
       const newAnswers = [...answers, opt];
-      if (step < questions.length - 1) {
-        setAnswers(newAnswers);
-        setStep(step + 1);
-      } else {
-        onNext(newAnswers);
-      }
       setSelectedOption(null);
-      selectionTimerRef.current = null;
-    }, 130);
+      selectionTimerRef.current = window.setTimeout(() => {
+        if (step < questions.length - 1) {
+          setAnswers(newAnswers);
+          setStep(step + 1);
+        } else {
+          onNext(newAnswers);
+        }
+        selectionTimerRef.current = null;
+      }, 40);
+    }, 110);
   };
 
   useEffect(() => {
@@ -1466,7 +1468,7 @@ const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }} key={step}>
         {questions[step].options.map((opt, i) => (
           <button
-            key={i}
+            key={`${step}-${opt}-${i}`}
             className="glass-card onboarding-choice onboarding-static-card"
             style={{
               padding: '18px 20px',
@@ -1517,7 +1519,7 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
       className="onboarding-step-shell protocol-step"
       style={{ padding: '28px 24px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', justifyContent: 'flex-end', gap: '18px' }}
     >
-      <div style={{ display: 'grid', gap: '18px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '18px', flex: 1 }}>
       <motion.div
           initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -1627,7 +1629,7 @@ const AuthStep = ({
 
   return (
     <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '24px 16px 10px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-      <div style={{ display: 'grid', gap: '10px' }}>
+      <div style={{ display: 'grid', gap: '10px', flex: 1, alignContent: 'end' }}>
       <div className="auth-brand-row">
         <BrandLockup subtitle="Focus infrastructure for real life." compact />
       </div>
@@ -1935,7 +1937,7 @@ const DeviceUsageAccessStep = ({
 
   return (
   <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell usage-access-step-shell" style={{ padding: '24px 24px 12px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-    <div style={{ display: 'grid', gap: '16px' }}>
+    <div style={{ display: 'grid', gap: '16px', flex: 1, alignContent: 'end' }}>
       <BrandLockup subtitle="Screen time insights, explained gently." compact />
       <div className="glass-card" style={{ padding: '24px', display: 'grid', gap: '16px' }}>
         <div style={{ fontSize: '0.78rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 800 }}>Screen Time Data</div>
@@ -3152,7 +3154,7 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
       className="onboarding-step-shell reality-check-step"
       style={{ padding: '28px 24px 12px', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', justifyContent: 'flex-end', gap: '18px' }}
     >
-      <div>
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', flex: 1 }}>
       <div className="reality-check-hero" style={{ textAlign: 'center', marginBottom: '24px' }}>
          <div style={{ width: '58px', height: '58px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '50%', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Activity color="var(--accent-danger)" size={32} />
@@ -4293,7 +4295,6 @@ export default function App() {
 
     const blockedLabel = labelForBlockedPackage(event.packageName);
     setBlockedAppName(blockedLabel);
-    setShowBlockScreen(true);
     setBlockedCount((prev) => prev + 1);
     setPhonePickups((prev) => prev + 1);
     setBlockedByApp((prev) => ({ ...prev, [blockedLabel]: (prev[blockedLabel] || 0) + 1 }));

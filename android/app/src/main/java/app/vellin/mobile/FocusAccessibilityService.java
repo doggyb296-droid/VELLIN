@@ -43,11 +43,10 @@ public class FocusAccessibilityService extends AccessibilityService {
           .apply();
         FocusBlockerStore.recordBlockedPackage(this, packageName, System.currentTimeMillis());
 
-        performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
-
-        Intent launchIntent = new Intent(this, MainActivity.class);
-        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(launchIntent);
+        Intent blockedIntent = new Intent(this, BlockedAppActivity.class);
+        blockedIntent.putExtra(BlockedAppActivity.EXTRA_PACKAGE_NAME, packageName);
+        blockedIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+        startActivity(blockedIntent);
     }
 
     @Override

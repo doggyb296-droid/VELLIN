@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@color/vellin_splash_background">
+
+    <TextView
+        android:id="@+id/blocked_app_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="BLOCKED BY VELLIN"
+        android:textAllCaps="true"
+        android:textColor="@color/colorAccent"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.08" />
+
+    <TextView
+        android:id="@+id/blocked_app_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="Stay With Your Focus"
+        android:textColor="@android:color/white"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/blocked_app_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:gravity="center"
+        android:text="This app is blocked while your focus session is running."
+        android:textColor="#C5D1E6"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/blocked_app_open_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:backgroundTint="@color/colorAccent"
+        android:text="Return To VELLIN"
+        android:textAllCaps="false"
+        android:textColor="#13233D"
+        android:textStyle="bold" />
+
+</LinearLayout>

@@ -5,6 +5,7 @@ import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ComponentName;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
@@ -171,9 +172,17 @@ public class DeviceUsagePlugin extends Plugin {
 
     @PluginMethod
     public void openFocusBlockerSettings(PluginCall call) {
-        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+        Intent intent = new Intent("android.settings.ACCESSIBILITY_DETAILS_SETTINGS");
+        intent.putExtra(Intent.EXTRA_COMPONENT_NAME, new ComponentName(getContext(), FocusAccessibilityService.class));
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        getContext().startActivity(intent);
+
+        try {
+            getContext().startActivity(intent);
+        } catch (Exception ignored) {
+            Intent fallbackIntent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+            fallbackIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(fallbackIntent);
+        }
         call.resolve();
     }
 
