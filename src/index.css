@@ -481,7 +481,7 @@ body {
   overflow-x: hidden;
   scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: max(44px, calc(env(safe-area-inset-bottom, 0px) + 36px)) !important;
+  padding-bottom: max(18px, calc(env(safe-area-inset-bottom, 0px) + 10px)) !important;
 }
 
 .onboarding-static-card {
@@ -598,14 +598,14 @@ body {
 
 @media (max-width: 520px) {
   .welcome-step {
-    justify-content: flex-start !important;
-    gap: 6px;
-    padding-top: max(58px, env(safe-area-inset-top, 0px) + 40px) !important;
-    padding-bottom: max(4px, calc(env(safe-area-inset-bottom, 0px) + 2px)) !important;
+    justify-content: flex-end !important;
+    gap: 14px;
+    padding-top: max(18px, env(safe-area-inset-top, 0px) + 10px) !important;
+    padding-bottom: max(8px, calc(env(safe-area-inset-bottom, 0px) + 4px)) !important;
   }
 
   .welcome-step-copy {
-    justify-content: flex-end !important;
+    justify-content: end !important;
     align-content: end !important;
     gap: 12px !important;
     padding-top: 0;
@@ -642,8 +642,8 @@ body {
   }
 
   .welcome-step .onboarding-step-actions {
-    margin-top: auto !important;
-    padding-top: 8px;
+    margin-top: 0 !important;
+    padding-top: 4px;
     padding-bottom: 0;
   }
 
@@ -682,9 +682,9 @@ body {
   }
 
   .auth-screen {
-    justify-content: center;
-    padding-top: max(34px, env(safe-area-inset-top, 0px) + 24px);
-    padding-bottom: max(12px, calc(env(safe-area-inset-bottom, 0px) + 8px));
+    justify-content: flex-end;
+    padding-top: max(18px, env(safe-area-inset-top, 0px) + 12px);
+    padding-bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) + 6px));
   }
 
   .auth-shell {
@@ -748,13 +748,18 @@ body {
   }
 
   .protocol-step {
-    justify-content: center !important;
-    padding-top: max(34px, env(safe-area-inset-top, 0px) + 24px) !important;
+    justify-content: flex-end !important;
+    padding-top: max(18px, env(safe-area-inset-top, 0px) + 10px) !important;
   }
 
   .reality-check-step {
-    justify-content: space-between !important;
-    padding-top: max(32px, env(safe-area-inset-top, 0px) + 22px) !important;
+    justify-content: flex-end !important;
+    padding-top: max(18px, env(safe-area-inset-top, 0px) + 10px) !important;
+  }
+
+  .usage-access-step-shell {
+    justify-content: flex-end !important;
+    padding-top: max(18px, env(safe-area-inset-top, 0px) + 10px) !important;
   }
 
   .pro-offer-stack {
@@ -778,8 +783,8 @@ body {
 
 @media (max-width: 520px) and (max-height: 860px) {
   .auth-screen {
-    padding-top: max(18px, env(safe-area-inset-top, 0px) + 12px);
-    padding-bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) + 8px));
+    padding-top: max(14px, env(safe-area-inset-top, 0px) + 8px);
+    padding-bottom: max(8px, calc(env(safe-area-inset-bottom, 0px) + 6px));
   }
 
   .auth-brand-row {

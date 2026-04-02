@@ -1385,9 +1385,9 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '62px 24px 6px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center' }}
+      style={{ padding: '28px 24px 8px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', textAlign: 'center', gap: '18px' }}
     >
-      <div className="welcome-step-copy" style={{ display: 'grid', gap: '16px', marginTop: 'auto' }}>
+      <div className="welcome-step-copy" style={{ display: 'grid', gap: '16px' }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -1406,7 +1406,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
           ))}
         </div>
       </div>
-      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '10px', paddingBottom: 0 }}>
+      <div className="onboarding-step-actions" style={{ paddingTop: '6px', paddingBottom: 0 }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
         </button>
@@ -1515,9 +1515,9 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
       initial={false}
       animate={{ opacity: 1, y: 0 }}
       className="onboarding-step-shell protocol-step"
-      style={{ padding: '32px 24px 14px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', justifyContent: 'space-between' }}
+      style={{ padding: '28px 24px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', justifyContent: 'flex-end', gap: '18px' }}
     >
-      <div style={{ display: 'grid', gap: '18px', marginTop: 'auto' }}>
+      <div style={{ display: 'grid', gap: '18px' }}>
       <motion.div
           initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -1542,7 +1542,7 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
          </ul>
       </div>
       </div>
-      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '6px' }}>
+      <div className="onboarding-step-actions" style={{ paddingTop: '6px' }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%' }}>Continue</button>
       </div>
     </motion.div>
@@ -1626,8 +1626,8 @@ const AuthStep = ({
   };
 
   return (
-    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '34px 16px 12px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-      <div style={{ display: 'grid', gap: '10px', marginTop: 'auto' }}>
+    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '24px 16px 10px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'grid', gap: '10px' }}>
       <div className="auth-brand-row">
         <BrandLockup subtitle="Focus infrastructure for real life." compact />
       </div>
@@ -1934,8 +1934,8 @@ const DeviceUsageAccessStep = ({
   const canMoveForward = isUsageReady && isBlockerReady;
 
   return (
-  <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell" style={{ padding: '36px 24px 14px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-    <div style={{ display: 'grid', gap: '18px', marginTop: 'auto' }}>
+  <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell usage-access-step-shell" style={{ padding: '24px 24px 12px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+    <div style={{ display: 'grid', gap: '16px' }}>
       <BrandLockup subtitle="Screen time insights, explained gently." compact />
       <div className="glass-card" style={{ padding: '24px', display: 'grid', gap: '16px' }}>
         <div style={{ fontSize: '0.78rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 800 }}>Screen Time Data</div>
@@ -1988,27 +1988,32 @@ const DeviceUsageAccessStep = ({
             </div>
             <div className="usage-access-steps" style={{ gap: '10px' }}>
               <div className="usage-access-step">
-                <div className="usage-access-step-index">1</div>
-                <div>
-                  <div className="usage-access-step-title">Open Accessibility</div>
-                  <div className="usage-access-step-copy">VELLIN will take you to Android Accessibility settings.</div>
+              <div className="usage-access-step-index">1</div>
+              <div>
+                <div className="usage-access-step-title">Open Accessibility</div>
+                  <div className="usage-access-step-copy">VELLIN will open the Android Accessibility page you showed in your screenshot.</div>
                 </div>
               </div>
               <div className="usage-access-step">
                 <div className="usage-access-step-index">2</div>
                 <div>
                   <div className="usage-access-step-title">Find VELLIN</div>
-                  <div className="usage-access-step-copy">On Samsung phones, tap <strong>Installed services</strong> near the bottom. On other phones, look for <strong>Installed apps</strong>, <strong>Downloaded apps</strong>, or <strong>Accessibility services</strong>.</div>
+                  <div className="usage-access-step-copy">On Samsung phones, stay on that page and <strong>scroll all the way to the bottom</strong>. Tap <strong>Installed services</strong>. On other phones, look for <strong>Installed apps</strong>, <strong>Downloaded apps</strong>, or <strong>Accessibility services</strong>.</div>
                 </div>
               </div>
               <div className="usage-access-step">
                 <div className="usage-access-step-index">3</div>
                 <div>
                   <div className="usage-access-step-title">Turn VELLIN on</div>
-                  <div className="usage-access-step-copy">Switch <strong>Use VELLIN</strong> on, then come back here.</div>
+                  <div className="usage-access-step-copy">Tap <strong>VELLIN</strong>, switch <strong>Use VELLIN</strong> on, then come back here.</div>
                 </div>
               </div>
             </div>
+            {!blockerEnabled && (
+              <div className="auth-notice auth-notice-warning" style={{ margin: 0 }}>
+                If you are on the Samsung screen with <strong>Screen reader</strong>, <strong>Visibility enhancements</strong>, and <strong>Installed services</strong>, do not tap the top categories. Scroll lower and open <strong>Installed services</strong>.
+              </div>
+            )}
             {blockerEnabled ? (
               <div className="auth-notice auth-notice-success" style={{ margin: 0 }}>
                 Blocker Access is connected. VELLIN can now kick you out of blocked apps during focus.
@@ -3145,9 +3150,9 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
       animate={{ opacity: 1, x: 0 }}
       exit={reduceMotion ? undefined : { opacity: 0, x: -12 }}
       className="onboarding-step-shell reality-check-step"
-      style={{ padding: '34px 24px 12px', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', justifyContent: 'space-between' }}
+      style={{ padding: '28px 24px 12px', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', justifyContent: 'flex-end', gap: '18px' }}
     >
-      <div style={{ marginTop: 'auto' }}>
+      <div>
       <div className="reality-check-hero" style={{ textAlign: 'center', marginBottom: '24px' }}>
          <div style={{ width: '58px', height: '58px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '50%', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Activity color="var(--accent-danger)" size={32} />
@@ -3179,7 +3184,7 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
       </div>
 
       </div>
-      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '6px' }}>
+      <div className="onboarding-step-actions" style={{ paddingTop: '6px' }}>
         <button className="btn-primary onboarding-step-cta" style={{ width: '100%', padding: '18px', fontSize: '1.05rem' }} onClick={onNext}>
           It's time to change.
         </button>
@@ -6305,9 +6310,10 @@ export default function App() {
                 Android needs one extra accessibility permission before VELLIN can kick blocked apps like Instagram out during a focus session.
               </div>
               <div className="glass-card blocker-setup-card">
-                <div className="blocker-setup-step"><strong>1.</strong> Open Android Accessibility settings.</div>
-                <div className="blocker-setup-step"><strong>2.</strong> Find <strong>VELLIN</strong> and switch Blocker Access on.</div>
-                <div className="blocker-setup-step"><strong>3.</strong> Come back here and start the focus timer again.</div>
+                <div className="blocker-setup-step"><strong>1.</strong> Open Android Accessibility.</div>
+                <div className="blocker-setup-step"><strong>2.</strong> On Samsung, <strong>scroll all the way down</strong> and tap <strong>Installed services</strong>.</div>
+                <div className="blocker-setup-step"><strong>3.</strong> Tap <strong>VELLIN</strong> and switch <strong>Use VELLIN</strong> on.</div>
+                <div className="blocker-setup-step"><strong>4.</strong> Come back here and start the focus timer again.</div>
               </div>
               <div className="blocker-setup-actions">
                 <button className="btn-primary" onClick={openNativeBlockerSettings}>Open Blocker Access</button>
