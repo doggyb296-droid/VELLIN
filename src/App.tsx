@@ -1385,9 +1385,9 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '50px 24px 12px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', justifyContent: 'space-between' }}
+      style={{ padding: '62px 24px 6px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center' }}
     >
-      <div className="welcome-step-copy" style={{ display: 'grid', gap: '16px', flex: 1, alignContent: 'end', marginTop: 'auto' }}>
+      <div className="welcome-step-copy" style={{ display: 'grid', gap: '16px', marginTop: 'auto' }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -1406,7 +1406,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
           ))}
         </div>
       </div>
-      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '8px' }}>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '10px', paddingBottom: 0 }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
         </button>
@@ -1998,7 +1998,7 @@ const DeviceUsageAccessStep = ({
                 <div className="usage-access-step-index">2</div>
                 <div>
                   <div className="usage-access-step-title">Find VELLIN</div>
-                  <div className="usage-access-step-copy">On most phones this is under <strong>Installed apps</strong>, <strong>Downloaded apps</strong>, or <strong>Accessibility services</strong>.</div>
+                  <div className="usage-access-step-copy">On Samsung phones, tap <strong>Installed services</strong> near the bottom. On other phones, look for <strong>Installed apps</strong>, <strong>Downloaded apps</strong>, or <strong>Accessibility services</strong>.</div>
                 </div>
               </div>
               <div className="usage-access-step">
