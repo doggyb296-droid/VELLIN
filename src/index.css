@@ -143,6 +143,11 @@ body {
   min-height: 0;
 }
 
+.welcome-step-spacer {
+  flex: 1 1 auto;
+  min-height: 24px;
+}
+
 .brand-lockup {
   display: inline-flex;
   align-items: center;
@@ -611,6 +616,10 @@ body {
     align-content: start !important;
     gap: 10px !important;
     padding-top: 0;
+  }
+
+  .welcome-step-spacer {
+    min-height: 16px;
   }
 
   .welcome-highlight-grid {
