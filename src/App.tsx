@@ -213,7 +213,9 @@ interface PersistedState {
   deviceUsageAccessStatus: DeviceUsageAccessStatus;
   focusByDate: Record<string, number>;
   focusScore: number;
+  focusSessionStartedAt: number | null;
   hasCompletedOnboarding: boolean;
+  isFocusing: boolean;
   onboardingVersion: number;
   isDarkMode: boolean;
   isPro: boolean;
@@ -1242,7 +1244,9 @@ const normalizePersistedState = (saved: Partial<PersistedState>): Partial<Persis
       ? saved.deviceUsageAccessStatus
       : 'unknown',
     focusByDate: saved.focusByDate && typeof saved.focusByDate === 'object' ? saved.focusByDate : {},
+    focusSessionStartedAt: typeof saved.focusSessionStartedAt === 'number' ? saved.focusSessionStartedAt : null,
     hasCompletedOnboarding: Boolean(saved.hasCompletedOnboarding),
+    isFocusing: Boolean(saved.isFocusing),
     onboardingStep: ONBOARDING_RESTORABLE_STEPS.includes(saved.onboardingStep as OnboardingStep)
       ? (saved.onboardingStep as OnboardingStep)
       : 'welcome',
@@ -3079,12 +3083,15 @@ const Blocklist = ({
 
 const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlockedUsageByApp, onNext }: { distractions: string[], deviceUsageAccessStatus: DeviceUsageAccessStatus, weeklyBlockedUsageByApp: Record<string, number>, onNext: () => void }) => {
   const reduceMotion = useReducedMotion() || Capacitor.isNativePlatform();
-  const selectedCount = Math.max(1, distractions.length);
   const distractionLabel = distractions.length ? distractions.join(', ') : 'your chosen distractions';
   const hasConnectedUsageData = deviceUsageAccessStatus === 'granted';
   const deviceUsageSupported = canUseNativeDeviceUsage();
-  const topUsageEntry = Object.entries(weeklyBlockedUsageByApp).sort((a, b) => b[1] - a[1])[0];
+  const sortedUsageEntries = Object.entries(weeklyBlockedUsageByApp).sort((a, b) => b[1] - a[1]);
+  const topUsageEntry = sortedUsageEntries[0];
   const hasMeaningfulUsageData = Boolean(topUsageEntry && topUsageEntry[1] > 0);
+  const totalWeeklyUsageMs = sortedUsageEntries.reduce((sum, [, ms]) => sum + ms, 0);
+  const totalWeeklyUsageMinutes = Math.round(totalWeeklyUsageMs / 60000);
+  const totalWeeklyUsageHours = totalWeeklyUsageMs / (60 * 60 * 1000);
   const topUsageText = hasMeaningfulUsageData && topUsageEntry
     ? `${topUsageEntry[0]} took ${Math.round(topUsageEntry[1] / 60000)} minutes last week.`
     : deviceUsageSupported
@@ -3105,12 +3112,16 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
             <Activity color="var(--accent-danger)" size={32} />
          </div>
          <h2 className="reality-check-kicker" style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '14px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Reality Check</h2>
-         <div className="reality-check-count" style={{ fontSize: '4rem', fontWeight: 900, color: 'var(--accent-danger)', lineHeight: 1, textShadow: '0 4px 20px rgba(239, 68, 68, 0.3)' }}>{selectedCount}</div>
+         <div className="reality-check-count" style={{ fontSize: '4rem', fontWeight: 900, color: 'var(--accent-danger)', lineHeight: 1, textShadow: '0 4px 20px rgba(239, 68, 68, 0.3)' }}>
+           {hasMeaningfulUsageData ? `${totalWeeklyUsageHours.toFixed(totalWeeklyUsageHours >= 10 ? 0 : 1)}h` : distractions.length}
+         </div>
          
          <p className="reality-check-copy" style={{ fontSize: '1rem', marginTop: '20px', color: 'var(--text-main)', fontWeight: 500, lineHeight: 1.6 }}>
            {hasConnectedUsageData
-             ? `We are now using your connected device usage data to review ${distractionLabel}.`
-             : <>You marked <b style={{ color: 'var(--accent-danger)', fontSize: '1.3rem' }}>{selectedCount}</b> distraction {selectedCount === 1 ? 'trigger' : 'triggers'}: {distractionLabel}.</>}
+             ? hasMeaningfulUsageData
+               ? <>Last week you spent about <b style={{ color: 'var(--accent-danger)', fontSize: '1.2rem' }}>{totalWeeklyUsageMinutes} minutes</b> inside {distractionLabel}.</>
+               : `We are now using your connected device usage data to review ${distractionLabel}.`
+             : <>You marked <b style={{ color: 'var(--accent-danger)', fontSize: '1.2rem' }}>{Math.max(1, distractions.length)}</b> distraction {Math.max(1, distractions.length) === 1 ? 'trigger' : 'triggers'}: {distractionLabel}.</>}
          </p>
          <div className="reality-check-subcopy" style={{ fontSize: '0.95rem', marginTop: '14px', color: 'var(--text-secondary)' }}>
            {hasConnectedUsageData
@@ -3125,7 +3136,9 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px', letterSpacing: '0.05em', fontWeight: 600 }}>WHAT HAPPENS NEXT</div>
          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.3 }}>
            {hasConnectedUsageData
-             ? 'We will use your real device usage history for the next Reality Check and the reduction plan.'
+             ? hasMeaningfulUsageData
+               ? 'We will use your real last-week usage time to build the next Reality Check and reduction plan.'
+               : 'We will keep checking for your real device usage history and use it in the next Reality Check.'
              : 'We will keep using your tracked VELLIN behavior for now, and switch to real device usage history once the native mobile connection is finished.'}
          </div>
       </div>
@@ -4069,7 +4082,7 @@ export default function App() {
   const supabase = useMemo<SupabaseClient | null>(() => createSupabaseBrowserClient(), []);
 
   const [activeTab, setActiveTab] = useState(persistedState.activeTab ?? 'home');
-  const [isFocusing, setIsFocusing] = useState(false);
+  const [isFocusing, setIsFocusing] = useState(Boolean(persistedState.isFocusing && persistedState.focusSessionStartedAt));
   const [showBlockScreen, setShowBlockScreen] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>(restoredOnboardingState.onboardingStep);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(restoredOnboardingState.hasCompletedOnboarding);
@@ -4083,7 +4096,13 @@ export default function App() {
   
   const [userData, setUserData] = useState<UserData>(persistedState.userData ?? DEFAULT_USER_DATA);
   const [focusScore, setFocusScore] = useState(persistedState.focusScore ?? 89);
-  const [focusSeconds, setFocusSeconds] = useState(0);
+  const [focusSeconds, setFocusSeconds] = useState(() => {
+    const startedAt = typeof persistedState.focusSessionStartedAt === 'number' ? persistedState.focusSessionStartedAt : null;
+    if (persistedState.isFocusing && startedAt) {
+      return Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+    }
+    return 0;
+  });
   const [, setToastMessage] = useState<string | null>(null);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [notificationPermissionState, setNotificationPermissionState] = useState<NotificationPermissionState>('unsupported');
@@ -4115,6 +4134,7 @@ export default function App() {
   const lastReclaimedDateRef = useRef<string | null>(persistedState.lastReclaimedDate ?? null);
   const streakRef = useRef(persistedState.streak ?? 0);
   const focusSecondsRef = useRef(0);
+  const focusSessionStartedAtRef = useRef<number | null>(typeof persistedState.focusSessionStartedAt === 'number' ? persistedState.focusSessionStartedAt : null);
   const lastBreakReminderAtRef = useRef<number | null>(null);
 
   // Sync refs with state
@@ -4122,6 +4142,12 @@ export default function App() {
   useEffect(() => { lastReclaimedDateRef.current = lastReclaimedDate; }, [lastReclaimedDate]);
   useEffect(() => { streakRef.current = streak; }, [streak]);
   useEffect(() => { focusSecondsRef.current = focusSeconds; }, [focusSeconds]);
+  const syncFocusElapsed = useCallback(() => {
+    if (!isFocusing || !focusSessionStartedAtRef.current) return;
+    const nextSeconds = Math.max(0, Math.floor((Date.now() - focusSessionStartedAtRef.current) / 1000));
+    focusSecondsRef.current = nextSeconds;
+    setFocusSeconds(nextSeconds);
+  }, [isFocusing]);
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -4254,6 +4280,7 @@ export default function App() {
     setIsFocusing(false);
     setFocusSeconds(0);
     focusSecondsRef.current = 0;
+    focusSessionStartedAtRef.current = null;
     lastBreakReminderAtRef.current = null;
   }, []);
   useEffect(() => {
@@ -4299,6 +4326,7 @@ export default function App() {
         await consumeNativeFocusAction();
         await refreshFocusBlockerStatus();
         await consumeNativeBlockedEvent();
+        syncFocusElapsed();
       }
     };
 
@@ -4318,17 +4346,14 @@ export default function App() {
         void listenerHandle.remove();
       }
     };
-  }, [consumeNativeBlockedEvent, consumeNativeFocusAction, refreshFocusBlockerStatus]);
+  }, [consumeNativeBlockedEvent, consumeNativeFocusAction, refreshFocusBlockerStatus, syncFocusElapsed]);
   const scrollVisibleSurfaceToTop = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'auto' });
-    }
-    mainScrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
-    if (typeof document !== 'undefined') {
-      document.querySelectorAll<HTMLElement>('.onboarding-step-shell, .auth-screen, .pro-offer-step-shell, .all-apps-list').forEach((node) => {
-        node.scrollTo({ top: 0, behavior: 'auto' });
-      });
-    }
+    if (typeof window === 'undefined') return;
+    window.requestAnimationFrame(() => {
+      mainScrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+      const visibleSurface = document.querySelector<HTMLElement>('.onboarding-step-shell, .auth-screen, .pro-offer-step-shell, .all-apps-list');
+      visibleSurface?.scrollTo({ top: 0, behavior: 'auto' });
+    });
   }, []);
   useEffect(() => {
     scrollVisibleSurfaceToTop();
@@ -4439,7 +4464,9 @@ export default function App() {
     focusByDate,
     userData,
     focusScore,
+    focusSessionStartedAt: focusSessionStartedAtRef.current,
     hasCompletedOnboarding,
+    isFocusing,
     onboardingStep,
     onboardingVersion: ONBOARDING_FLOW_VERSION,
     isDarkMode,
@@ -4466,7 +4493,7 @@ export default function App() {
     totalSessions,
     totalReclaimed,
     unlockedAchievements
-  }), [activeTab, blockedByApp, blockedCount, breakReminderMins, completedTaskIds, dailyGoalHits, dailyGoalSeconds, deviceUsageAccessStatus, focusByDate, userData, focusScore, hasCompletedOnboarding, onboardingStep, isDarkMode, isPro, lastFocusDate, lastGoalDate, lastReclaimedDate, maxStreak, notificationsEnabled, phonePickups, proPlan, proPricingRegion, detectedPricingRegion, hasUsedIntroTrial, introTrialStartedAt, membershipAutoRenew, scheduleBlocks, sessions, soundEnabled, streak, taskCompletions, tasks, todayReclaimed, totalSessions, totalReclaimed, unlockedAchievements]);
+  }), [activeTab, blockedByApp, blockedCount, breakReminderMins, completedTaskIds, dailyGoalHits, dailyGoalSeconds, deviceUsageAccessStatus, focusByDate, userData, focusScore, hasCompletedOnboarding, isFocusing, onboardingStep, isDarkMode, isPro, lastFocusDate, lastGoalDate, lastReclaimedDate, maxStreak, notificationsEnabled, phonePickups, proPlan, proPricingRegion, detectedPricingRegion, hasUsedIntroTrial, introTrialStartedAt, membershipAutoRenew, scheduleBlocks, sessions, soundEnabled, streak, taskCompletions, tasks, todayReclaimed, totalSessions, totalReclaimed, unlockedAchievements]);
 
   const buildProfilePayload = useCallback((userId: string): SupabaseProfileRow => ({
     user_id: userId,
@@ -4534,8 +4561,11 @@ export default function App() {
     const normalized = normalizePersistedState(saved);
     const restoredOnboarding = resolveRestoredOnboardingState(normalized);
     isApplyingRemoteStateRef.current = true;
+    const restoredFocusStart = typeof normalized.focusSessionStartedAt === 'number' ? normalized.focusSessionStartedAt : null;
 
     setActiveTab(normalized.activeTab ?? 'home');
+    focusSessionStartedAtRef.current = restoredFocusStart;
+    setIsFocusing(Boolean(normalized.isFocusing && restoredFocusStart));
     setBlockedByApp(normalized.blockedByApp ?? {});
     setBlockedCount(normalized.blockedCount ?? 0);
     setBreakReminderMins(normalized.breakReminderMins ?? 25);
@@ -4545,6 +4575,7 @@ export default function App() {
     setDeviceUsageAccessStatus(normalized.deviceUsageAccessStatus ?? 'unknown');
     setFocusByDate(normalized.focusByDate ?? {});
     setFocusScore(normalized.focusScore ?? 89);
+    setFocusSeconds(normalized.isFocusing && restoredFocusStart ? Math.max(0, Math.floor((Date.now() - restoredFocusStart) / 1000)) : 0);
     setHasCompletedOnboarding(restoredOnboarding.hasCompletedOnboarding);
     setOnboardingStep(restoredOnboarding.onboardingStep);
     setIsDarkMode(normalized.isDarkMode ?? true);
@@ -4906,7 +4937,9 @@ export default function App() {
   }, [recordGoalHitIfNeeded]);
 
   const finalizeFocusSession = useCallback(() => {
-    const currentSeconds = focusSecondsRef.current;
+    const currentSeconds = focusSessionStartedAtRef.current
+      ? Math.max(0, Math.floor((Date.now() - focusSessionStartedAtRef.current) / 1000))
+      : focusSecondsRef.current;
     let outcome: 'idle' | 'abandoned' | 'completed' = 'idle';
     if (currentSeconds > 0) {
       if (currentSeconds < 15) {
@@ -4922,6 +4955,7 @@ export default function App() {
     }
     setFocusSeconds(0);
     focusSecondsRef.current = 0;
+    focusSessionStartedAtRef.current = null;
     lastBreakReminderAtRef.current = null;
     return { currentSeconds, outcome };
   }, [addTodayReclaimed, updateStreak]);
@@ -5092,6 +5126,7 @@ export default function App() {
     setIsFocusing(false);
     setFocusSeconds(0);
     focusSecondsRef.current = 0;
+    focusSessionStartedAtRef.current = null;
     lastBreakReminderAtRef.current = null;
     setHasCompletedOnboarding(false);
     setIsRetakingSetup(false);
@@ -5860,15 +5895,12 @@ export default function App() {
   // Focus Timer Update logic
   useEffect(() => {
     if (!isFocusing) return;
+    syncFocusElapsed();
     const interval = setInterval(() => {
-      setFocusSeconds(prev => {
-        const next = prev + 1;
-        focusSecondsRef.current = next;
-        return next;
-      });
+      syncFocusElapsed();
     }, 1000);
     return () => { if (interval) clearInterval(interval); };
-  }, [isFocusing]); 
+  }, [isFocusing, syncFocusElapsed]);
 
   // Handle Distraction Time
   const handleAppDistraction = (app: string, opts?: { simulate?: boolean }) => {
@@ -5917,7 +5949,11 @@ export default function App() {
         return;
       }
       lastBreakReminderAtRef.current = null;
+      const nextStartedAt = Date.now();
+      focusSessionStartedAtRef.current = nextStartedAt;
       setIsFocusing(true);
+      setFocusSeconds(0);
+      focusSecondsRef.current = 0;
       setShowBlockScreen(false);
       setBlockedAppName(null);
       return;
@@ -6079,6 +6115,9 @@ export default function App() {
           setActiveAutoTaskId(t.id);
           if (!isFocusing) {
             lastBreakReminderAtRef.current = null;
+            focusSessionStartedAtRef.current = Date.now();
+            focusSecondsRef.current = 0;
+            setFocusSeconds(0);
             setIsFocusing(true);
           }
           showToast(`Focus block started: ${t.title}`);
