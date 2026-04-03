@@ -1411,8 +1411,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
           ))}
         </div>
       </div>
-      <div className="welcome-step-spacer" />
-      <div className="onboarding-step-actions" style={{ marginTop: 0, paddingTop: 0, paddingBottom: 0 }}>
+      <div className="onboarding-step-actions welcome-step-actions" style={{ marginTop: 0, paddingTop: 0, paddingBottom: 0 }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
         </button>

@@ -142,10 +142,19 @@ body {
   justify-content: flex-start;
   min-height: 0;
 }
+.onboarding-container {
+  min-height: 100dvh;
+  height: 100dvh;
+}
 
-.welcome-step-spacer {
-  flex: 1 1 auto;
-  min-height: 24px;
+.welcome-step {
+  min-height: 100dvh !important;
+  height: 100dvh !important;
+  justify-content: space-between !important;
+}
+
+.welcome-step-actions {
+  margin-top: 0 !important;
 }
 
 .brand-lockup {
@@ -618,10 +627,6 @@ body {
     padding-top: 0;
   }
 
-  .welcome-step-spacer {
-    min-height: 16px;
-  }
-
   .welcome-highlight-grid {
     gap: 12px;
     margin-top: 10px;
@@ -653,7 +658,7 @@ body {
   }
 
   .welcome-step .onboarding-step-actions {
-    margin-top: auto !important;
+    margin-top: 0 !important;
     padding-top: 2px;
     padding-bottom: 0;
   }
