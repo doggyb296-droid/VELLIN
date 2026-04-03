@@ -684,7 +684,7 @@ body {
   }
 
   .auth-screen {
-    justify-content: flex-end;
+    justify-content: flex-start;
     padding-top: max(12px, env(safe-area-inset-top, 0px) + 6px);
     padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
   }
@@ -750,17 +750,17 @@ body {
   }
 
   .protocol-step {
-    justify-content: flex-end !important;
+    justify-content: flex-start !important;
     padding-top: max(10px, env(safe-area-inset-top, 0px) + 4px) !important;
   }
 
   .reality-check-step {
-    justify-content: flex-end !important;
+    justify-content: flex-start !important;
     padding-top: max(10px, env(safe-area-inset-top, 0px) + 4px) !important;
   }
 
   .usage-access-step-shell {
-    justify-content: flex-end !important;
+    justify-content: flex-start !important;
     padding-top: max(10px, env(safe-area-inset-top, 0px) + 4px) !important;
   }
 

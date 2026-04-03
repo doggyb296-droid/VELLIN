@@ -1386,7 +1386,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '20px 24px 10px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', gap: '12px' }}
+      style={{ padding: '20px 24px 10px', minHeight: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', gap: '12px' }}
     >
       <div className="welcome-step-copy" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <motion.div
@@ -1517,7 +1517,7 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
       initial={false}
       animate={{ opacity: 1, y: 0 }}
       className="onboarding-step-shell protocol-step"
-      style={{ padding: '20px 24px 10px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', gap: '14px' }}
+      style={{ padding: '20px 24px 10px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100dvh', gap: '14px' }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <motion.div
@@ -1628,7 +1628,7 @@ const AuthStep = ({
   };
 
   return (
-    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '18px 16px 10px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column' }}>
+    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '18px 16px 10px', minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'grid', gap: '10px' }}>
       <div className="auth-brand-row">
         <BrandLockup subtitle="Focus infrastructure for real life." compact />
@@ -1913,30 +1913,22 @@ const AppSelectionStep = ({
 
 const DeviceUsageAccessStep = ({
   status,
-  blockerEnabled,
-  hasDistractionTargets,
   onAllow,
-  onOpenBlockerAccess,
   onContinue,
   onSkip,
   languageRegion
 }: {
   status: DeviceUsageAccessStatus,
-  blockerEnabled: boolean,
-  hasDistractionTargets: boolean,
   onAllow: () => void,
-  onOpenBlockerAccess: () => void,
   onContinue: () => void,
   onSkip: () => void,
   languageRegion: string
 }) => {
-  const needsBlockerAccess = canUseNativeDeviceUsage() && hasDistractionTargets;
   const isUsageReady = status === 'granted';
-  const isBlockerReady = !needsBlockerAccess || blockerEnabled;
-  const canMoveForward = isUsageReady && isBlockerReady;
+  const canMoveForward = isUsageReady;
 
   return (
-  <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell usage-access-step-shell" style={{ padding: '18px 24px 10px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column' }}>
+  <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell usage-access-step-shell" style={{ padding: '18px 24px 10px', minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
     <div style={{ display: 'grid', gap: '16px' }}>
       <BrandLockup subtitle="Screen time insights, explained gently." compact />
       <div className="glass-card" style={{ padding: '24px', display: 'grid', gap: '16px' }}>
@@ -1980,53 +1972,6 @@ const DeviceUsageAccessStep = ({
             Android will open the Usage Access settings screen next. Android does not let apps turn this on automatically, so you still need to switch on VELLIN yourself and then return here.
           </div>
         )}
-        {needsBlockerAccess && (
-          <div className="glass-card" style={{ padding: '18px', display: 'grid', gap: '12px', background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(139, 212, 255, 0.18)' }}>
-            <div style={{ fontSize: '0.78rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 800 }}>
-              App Blocking
-            </div>
-            <div style={{ color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-              To actually kick you out of blocked apps like Instagram during focus, Android also needs <strong style={{ color: 'var(--text-main)' }}>Blocker Access</strong> in Accessibility.
-            </div>
-            <div className="usage-access-steps" style={{ gap: '10px' }}>
-              <div className="usage-access-step">
-              <div className="usage-access-step-index">1</div>
-              <div>
-                <div className="usage-access-step-title">Open Accessibility</div>
-                  <div className="usage-access-step-copy">VELLIN will open the Android Accessibility page you showed in your screenshot.</div>
-                </div>
-              </div>
-              <div className="usage-access-step">
-                <div className="usage-access-step-index">2</div>
-                <div>
-                  <div className="usage-access-step-title">Find VELLIN</div>
-                  <div className="usage-access-step-copy">On Samsung phones, stay on that page and <strong>scroll all the way to the bottom</strong>. Tap <strong>Installed services</strong>. On other phones, look for <strong>Installed apps</strong>, <strong>Downloaded apps</strong>, or <strong>Accessibility services</strong>.</div>
-                </div>
-              </div>
-              <div className="usage-access-step">
-                <div className="usage-access-step-index">3</div>
-                <div>
-                  <div className="usage-access-step-title">Turn VELLIN on</div>
-                  <div className="usage-access-step-copy">Tap <strong>VELLIN</strong>, switch <strong>Use VELLIN</strong> on, then come back here.</div>
-                </div>
-              </div>
-            </div>
-            {!blockerEnabled && (
-              <div className="auth-notice auth-notice-warning" style={{ margin: 0 }}>
-                If you are on the Samsung screen with <strong>Screen reader</strong>, <strong>Visibility enhancements</strong>, and <strong>Installed services</strong>, do not tap the top categories. Scroll lower and open <strong>Installed services</strong>.
-              </div>
-            )}
-            {blockerEnabled ? (
-              <div className="auth-notice auth-notice-success" style={{ margin: 0 }}>
-                Blocker Access is connected. VELLIN can now kick you out of blocked apps during focus.
-              </div>
-            ) : (
-              <button className="btn-secondary" onClick={onOpenBlockerAccess} style={{ width: '100%' }}>
-                Open Blocker Access
-              </button>
-            )}
-          </div>
-        )}
         {status === 'requested' && (
           <div className="auth-notice auth-notice-info">
             Settings have already been opened for you. On Android, enable Usage Access for VELLIN, return to the app, and then tap Continue.
@@ -2049,10 +1994,10 @@ const DeviceUsageAccessStep = ({
         ) : (
           <button
             className="btn-primary"
-            onClick={isUsageReady ? onOpenBlockerAccess : onAllow}
+            onClick={onAllow}
             style={{ width: '100%' }}
           >
-            {isUsageReady ? 'Set Up App Blocking' : status === 'requested' ? 'Open Settings Again' : getUiString(languageRegion, 'screenTimeYes')}
+            {status === 'requested' ? 'Open Settings Again' : getUiString(languageRegion, 'screenTimeYes')}
           </button>
         )}
         <button className="btn-secondary" onClick={onSkip} style={{ width: '100%' }}>
@@ -3152,7 +3097,7 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
       animate={{ opacity: 1, x: 0 }}
       exit={reduceMotion ? undefined : { opacity: 0, x: -12 }}
       className="onboarding-step-shell reality-check-step"
-      style={{ padding: '20px 24px 10px', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', gap: '14px' }}
+      style={{ padding: '20px 24px 10px', display: 'flex', flexDirection: 'column', minHeight: '100dvh', gap: '14px' }}
     >
       <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="reality-check-hero" style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -6244,10 +6189,7 @@ export default function App() {
               <DeviceUsageAccessStep
                 key="usage-access"
                 status={deviceUsageAccessStatus}
-                blockerEnabled={isFocusBlockerEnabled}
-                hasDistractionTargets={userData.distractions.length > 0}
                 onAllow={requestDeviceUsageAccess}
-                onOpenBlockerAccess={openNativeBlockerSettings}
                 onContinue={nextOnboarding}
                 onSkip={skipDeviceUsageAccess}
                 languageRegion={resolvedPricingRegion}

@@ -7,6 +7,13 @@
     android:padding="24dp"
     android:background="@color/vellin_splash_background">
 
+    <ImageView
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:src="@mipmap/ic_launcher"
+        android:contentDescription="@string/app_name"
+        android:layout_marginBottom="12dp" />
+
     <TextView
         android:id="@+id/blocked_app_badge"
         android:layout_width="wrap_content"
@@ -43,8 +50,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
-        android:backgroundTint="@color/colorAccent"
-        android:text="Stay With My Plan"
+        android:background="@drawable/vellin_block_primary"
+        android:minHeight="54dp"
+        android:text="Stay On Track"
         android:textAllCaps="false"
         android:textColor="#13233D"
         android:textStyle="bold" />
@@ -54,8 +62,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="End Focus Session"
+        android:background="@drawable/vellin_block_secondary"
+        android:minHeight="54dp"
+        android:text="Return to VELLIN"
         android:textAllCaps="false"
+        android:textColor="#F7FBFF"
         android:textStyle="bold" />
 
 </LinearLayout>
