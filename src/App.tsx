@@ -3081,7 +3081,7 @@ const Blocklist = ({
   );
 };
 
-const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlockedUsageByApp, onNext }: { distractions: string[], deviceUsageAccessStatus: DeviceUsageAccessStatus, weeklyBlockedUsageByApp: Record<string, number>, onNext: () => void }) => {
+const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlockedUsageByApp, isLoadingWeeklyUsage, onNext }: { distractions: string[], deviceUsageAccessStatus: DeviceUsageAccessStatus, weeklyBlockedUsageByApp: Record<string, number>, isLoadingWeeklyUsage: boolean, onNext: () => void }) => {
   const reduceMotion = useReducedMotion() || Capacitor.isNativePlatform();
   const distractionLabel = distractions.length ? distractions.join(', ') : 'your chosen distractions';
   const hasConnectedUsageData = deviceUsageAccessStatus === 'granted';
@@ -3089,11 +3089,29 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
   const sortedUsageEntries = Object.entries(weeklyBlockedUsageByApp).sort((a, b) => b[1] - a[1]);
   const topUsageEntry = sortedUsageEntries[0];
   const hasMeaningfulUsageData = Boolean(topUsageEntry && topUsageEntry[1] > 0);
+  const shouldWaitForUsageData = hasConnectedUsageData && isLoadingWeeklyUsage && !hasMeaningfulUsageData;
   const totalWeeklyUsageMs = sortedUsageEntries.reduce((sum, [, ms]) => sum + ms, 0);
   const totalWeeklyUsageMinutes = Math.round(totalWeeklyUsageMs / 60000);
   const totalWeeklyUsageHours = totalWeeklyUsageMs / (60 * 60 * 1000);
+  const replacementIdea = (() => {
+    if (!hasMeaningfulUsageData) return null;
+    if (totalWeeklyUsageMinutes >= 240) {
+      const focusBlocks = Math.max(1, Math.round(totalWeeklyUsageMinutes / 50));
+      return `That could have been about ${focusBlocks} strong 50-minute focus blocks, a proper walk, and real downtime that actually left you restored.`;
+    }
+    if (totalWeeklyUsageMinutes >= 120) {
+      const focusBlocks = Math.max(1, Math.round(totalWeeklyUsageMinutes / 45));
+      return `That could have been ${focusBlocks} focused work blocks, a gym session, or a night that felt calmer instead of scattered.`;
+    }
+    if (totalWeeklyUsageMinutes >= 45) {
+      return `That could have been time to finish a task, take a walk, or read something you actually care about.`;
+    }
+    return `Even that time could have gone into one clean task, a quick reset, or getting ahead before the next craving hit.`;
+  })();
   const topUsageText = hasMeaningfulUsageData && topUsageEntry
     ? `${topUsageEntry[0]} took ${Math.round(topUsageEntry[1] / 60000)} minutes last week.`
+    : shouldWaitForUsageData
+      ? 'VELLIN is reviewing your last-week app time now so this Reality Check stays based on your real usage, not your setup answers.'
     : deviceUsageSupported
       ? 'Usage access is connected. VELLIN is waiting for Android to return real last-week app time here.'
       : 'Mobile web cannot read Screen Time or Usage Access directly, so VELLIN is using your setup answers here for now.';
@@ -3113,14 +3131,18 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
          </div>
          <h2 className="reality-check-kicker" style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '14px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Reality Check</h2>
          <div className="reality-check-count" style={{ fontSize: '4rem', fontWeight: 900, color: 'var(--accent-danger)', lineHeight: 1, textShadow: '0 4px 20px rgba(239, 68, 68, 0.3)' }}>
-           {hasMeaningfulUsageData ? `${totalWeeklyUsageHours.toFixed(totalWeeklyUsageHours >= 10 ? 0 : 1)}h` : distractions.length}
+           {hasConnectedUsageData
+             ? hasMeaningfulUsageData
+               ? `${totalWeeklyUsageHours.toFixed(totalWeeklyUsageHours >= 10 ? 0 : 1)}h`
+               : '...'
+             : distractions.length}
          </div>
          
          <p className="reality-check-copy" style={{ fontSize: '1rem', marginTop: '20px', color: 'var(--text-main)', fontWeight: 500, lineHeight: 1.6 }}>
            {hasConnectedUsageData
              ? hasMeaningfulUsageData
                ? <>Last week you spent about <b style={{ color: 'var(--accent-danger)', fontSize: '1.2rem' }}>{totalWeeklyUsageMinutes} minutes</b> inside {distractionLabel}.</>
-               : `We are now using your connected device usage data to review ${distractionLabel}.`
+               : `We are reviewing your connected device usage data to see how much time ${distractionLabel} actually took from your week.`
              : <>You marked <b style={{ color: 'var(--accent-danger)', fontSize: '1.2rem' }}>{Math.max(1, distractions.length)}</b> distraction {Math.max(1, distractions.length) === 1 ? 'trigger' : 'triggers'}: {distractionLabel}.</>}
          </p>
          <div className="reality-check-subcopy" style={{ fontSize: '0.95rem', marginTop: '14px', color: 'var(--text-secondary)' }}>
@@ -3130,6 +3152,11 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
                ? 'Connect device usage access to replace this setup summary with your real last-week app time from Screen Time or Usage Access.'
                : 'On the website, VELLIN cannot read Screen Time directly. The native iPhone and Android app can ask for that before deeper reports.'}
          </div>
+         {replacementIdea && (
+           <div className="reality-check-subcopy" style={{ fontSize: '0.95rem', marginTop: '14px', color: 'var(--text-main)', fontWeight: 500 }}>
+             {replacementIdea}
+           </div>
+         )}
       </div>
 
       <div className="glass-card bento-card" style={{ padding: '24px', borderLeft: '4px solid var(--accent-primary)', marginBottom: '18px' }}>
@@ -3138,7 +3165,7 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
            {hasConnectedUsageData
              ? hasMeaningfulUsageData
                ? 'We will use your real last-week usage time to build the next Reality Check and reduction plan.'
-               : 'We will keep checking for your real device usage history and use it in the next Reality Check.'
+               : 'We will finish reviewing your real device usage history before the next Reality Check lands.'
              : 'We will keep using your tracked VELLIN behavior for now, and switch to real device usage history once the native mobile connection is finished.'}
          </div>
       </div>
@@ -4177,6 +4204,7 @@ export default function App() {
   const [isFocusBlockerEnabled, setIsFocusBlockerEnabled] = useState(() => !canUseNativeDeviceUsage());
   const [showBlockerSetupPrompt, setShowBlockerSetupPrompt] = useState(false);
   const [weeklyBlockedUsageByApp, setWeeklyBlockedUsageByApp] = useState<Record<string, number>>({});
+  const [isLoadingWeeklyUsage, setIsLoadingWeeklyUsage] = useState(false);
   const [phonePickups, setPhonePickups] = useState(persistedState.phonePickups ?? 0);
   const [focusByDate, setFocusByDate] = useState<Record<string, number>>(persistedState.focusByDate ?? {});
   const [scheduleBlocks] = useState<ScheduleBlock[]>(persistedState.scheduleBlocks ?? DEFAULT_SCHEDULE_BLOCKS);
@@ -5154,6 +5182,7 @@ export default function App() {
     setBlockedCount(0);
     setBlockedByApp({});
     setWeeklyBlockedUsageByApp({});
+    setIsLoadingWeeklyUsage(false);
     setPhonePickups(0);
     setFocusByDate({});
     setTriggeredTaskStarts({});
@@ -6052,13 +6081,19 @@ export default function App() {
   }, [clearDailyNudgeTimers, dispatchDailyNudge, notificationPermissionState, notificationScheduleDay, notificationsEnabled]);
 
   useEffect(() => {
-    if (deviceUsageAccessStatus !== 'granted') return;
+    if (deviceUsageAccessStatus !== 'granted') {
+      setIsLoadingWeeklyUsage(false);
+      return;
+    }
     let cancelled = false;
+    setIsLoadingWeeklyUsage(true);
     void (async () => {
       const result = await getWeeklyUsageForLabels(userData.distractions, installedApps);
-      if (!cancelled && result.status === 'granted') {
+      if (cancelled) return;
+      if (result.status === 'granted') {
         setWeeklyBlockedUsageByApp(result.usageByLabel);
       }
+      setIsLoadingWeeklyUsage(false);
     })();
     return () => {
       cancelled = true;
@@ -6234,7 +6269,7 @@ export default function App() {
                 languageRegion={resolvedPricingRegion}
               />
             )}
-            {onboardingStep === 'realityCheck' && <RealityCheckStep key="reality" distractions={userData.distractions} deviceUsageAccessStatus={deviceUsageAccessStatus} weeklyBlockedUsageByApp={visibleWeeklyBlockedUsageByApp} onNext={nextOnboarding} />}
+      {onboardingStep === 'realityCheck' && <RealityCheckStep key="reality" distractions={userData.distractions} deviceUsageAccessStatus={deviceUsageAccessStatus} weeklyBlockedUsageByApp={visibleWeeklyBlockedUsageByApp} isLoadingWeeklyUsage={isLoadingWeeklyUsage} onNext={nextOnboarding} />}
             {onboardingStep === 'proPlan' && (
               <ProPlanOfferStep
                 key="pro-plan"
