@@ -44,7 +44,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
         android:backgroundTint="@color/colorAccent"
-        android:text="Keep Me Focused"
+        android:text="Stay With My Plan"
         android:textAllCaps="false"
         android:textColor="#13233D"
         android:textStyle="bold" />
@@ -54,7 +54,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="End Focus In VELLIN"
+        android:text="End Focus Session"
         android:textAllCaps="false"
         android:textStyle="bold" />
 

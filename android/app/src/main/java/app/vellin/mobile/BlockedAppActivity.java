@@ -25,7 +25,7 @@ public class BlockedAppActivity extends Activity {
         String packageName = getIntent() != null ? getIntent().getStringExtra(EXTRA_PACKAGE_NAME) : null;
         String appLabel = resolveAppLabel(packageName);
         titleView.setText("Blocked by VELLIN");
-        subtitleView.setText(appLabel + " is blocked right now. Protect the focus streak and keep moving.");
+        subtitleView.setText(appLabel + " is blocked right now. Stay with your plan or end the session if you really need to go back.");
 
         stayFocusedButton.setOnClickListener((view) -> {
             Intent homeIntent = new Intent(Intent.ACTION_MAIN);

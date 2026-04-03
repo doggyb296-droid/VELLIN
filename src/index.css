@@ -139,7 +139,7 @@ body {
 }
 
 .welcome-step-copy {
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 0;
 }
 
@@ -599,15 +599,16 @@ body {
 
 @media (max-width: 520px) {
   .welcome-step {
-    justify-content: flex-end !important;
+    min-height: 100dvh !important;
+    height: 100dvh !important;
     gap: 8px;
     padding-top: max(12px, env(safe-area-inset-top, 0px) + 6px) !important;
-    padding-bottom: max(4px, env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) + 6px)) !important;
   }
 
   .welcome-step-copy {
-    justify-content: flex-end !important;
-    align-content: end !important;
+    justify-content: flex-start !important;
+    align-content: start !important;
     gap: 10px !important;
     padding-top: 0;
   }
@@ -643,7 +644,7 @@ body {
   }
 
   .welcome-step .onboarding-step-actions {
-    margin-top: 0 !important;
+    margin-top: auto !important;
     padding-top: 2px;
     padding-bottom: 0;
   }

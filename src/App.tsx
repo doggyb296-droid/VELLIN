@@ -1386,19 +1386,19 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '22px 24px 4px', minHeight: '100svh', height: '100svh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', textAlign: 'center', gap: '12px' }}
+      style={{ padding: '20px 24px 10px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', gap: '12px' }}
     >
-      <div className="welcome-step-copy" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '16px', flex: 1 }}>
+      <div className="welcome-step-copy" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}
-          style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}
+          style={{ display: 'flex', justifyContent: 'center', marginBottom: '4px' }}
         >
           <BrandLockup subtitle="Quiet the noise. Keep the signal." />
         </motion.div>
-        <h1 className="onboarding-step-title" style={{ fontSize: '2.7rem', fontWeight: 800, marginBottom: '2px', letterSpacing: '-0.03em' }}>{getUiString(languageRegion, 'welcomeTitle')}</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.08rem', marginBottom: '6px', lineHeight: 1.65 }}>{getUiString(languageRegion, 'welcomeSubtitle')}</p>
+        <h1 className="onboarding-step-title" style={{ fontSize: '2.55rem', fontWeight: 800, marginBottom: '2px', letterSpacing: '-0.03em' }}>{getUiString(languageRegion, 'welcomeTitle')}</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.02rem', marginBottom: '2px', lineHeight: 1.58 }}>{getUiString(languageRegion, 'welcomeSubtitle')}</p>
         <div className="welcome-highlight-grid">
           {welcomeHighlights.map((item, index) => (
             <div key={`${item}-${index}`} className="glass-card welcome-highlight-card">
@@ -1407,7 +1407,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
           ))}
         </div>
       </div>
-      <div className="onboarding-step-actions" style={{ paddingTop: '6px', paddingBottom: 0 }}>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '14px', paddingBottom: 0 }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
         </button>
@@ -1428,26 +1428,25 @@ const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
     { q: "Primary trigger for loss of focus?", options: ["Notifications", "Boredom", "Task Difficulty", "Habitual Checking"] }
   ];
 
-  const handleOption = (opt: string) => {
+  const handleOption = (opt: string, button?: HTMLButtonElement | null) => {
     if (selectedOption) return;
     setSelectedOption(opt);
+    button?.blur();
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-      navigator.vibrate(16);
+      navigator.vibrate(10);
     }
 
     selectionTimerRef.current = window.setTimeout(() => {
       const newAnswers = [...answers, opt];
       setSelectedOption(null);
-      selectionTimerRef.current = window.setTimeout(() => {
-        if (step < questions.length - 1) {
-          setAnswers(newAnswers);
-          setStep(step + 1);
-        } else {
-          onNext(newAnswers);
-        }
-        selectionTimerRef.current = null;
-      }, 20);
-    }, 70);
+      if (step < questions.length - 1) {
+        setAnswers(newAnswers);
+        setStep((currentStep) => currentStep + 1);
+      } else {
+        onNext(newAnswers);
+      }
+      selectionTimerRef.current = null;
+    }, 36);
   };
 
   useEffect(() => {
@@ -1485,7 +1484,7 @@ const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
                 : undefined,
               transform: selectedOption === opt ? 'scale(0.985)' : 'none',
             }}
-            onClick={() => handleOption(opt)}
+            onClick={(event) => handleOption(opt, event.currentTarget)}
             aria-pressed={selectedOption === opt}
           >
             {opt}
@@ -1518,9 +1517,9 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
       initial={false}
       animate={{ opacity: 1, y: 0 }}
       className="onboarding-step-shell protocol-step"
-      style={{ padding: '22px 24px 8px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100svh', height: '100svh', justifyContent: 'flex-end', gap: '14px' }}
+      style={{ padding: '20px 24px 10px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', gap: '14px' }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '18px', flex: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <motion.div
           initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -1545,7 +1544,7 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
          </ul>
       </div>
       </div>
-      <div className="onboarding-step-actions" style={{ paddingTop: '6px' }}>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '12px' }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%' }}>Continue</button>
       </div>
     </motion.div>
@@ -1629,8 +1628,8 @@ const AuthStep = ({
   };
 
   return (
-    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '18px 16px 8px', minHeight: '100svh', height: '100svh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-      <div style={{ display: 'grid', gap: '10px', flex: 1, alignContent: 'end' }}>
+    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '18px 16px 10px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'grid', gap: '10px' }}>
       <div className="auth-brand-row">
         <BrandLockup subtitle="Focus infrastructure for real life." compact />
       </div>
@@ -1937,8 +1936,8 @@ const DeviceUsageAccessStep = ({
   const canMoveForward = isUsageReady && isBlockerReady;
 
   return (
-  <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell usage-access-step-shell" style={{ padding: '18px 24px 8px', minHeight: '100svh', height: '100svh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-    <div style={{ display: 'grid', gap: '16px', flex: 1, alignContent: 'end' }}>
+  <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell usage-access-step-shell" style={{ padding: '18px 24px 10px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'grid', gap: '16px' }}>
       <BrandLockup subtitle="Screen time insights, explained gently." compact />
       <div className="glass-card" style={{ padding: '24px', display: 'grid', gap: '16px' }}>
         <div style={{ fontSize: '0.78rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 800 }}>Screen Time Data</div>
@@ -3153,9 +3152,9 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
       animate={{ opacity: 1, x: 0 }}
       exit={reduceMotion ? undefined : { opacity: 0, x: -12 }}
       className="onboarding-step-shell reality-check-step"
-      style={{ padding: '22px 24px 8px', display: 'flex', flexDirection: 'column', minHeight: '100svh', height: '100svh', justifyContent: 'flex-end', gap: '14px' }}
+      style={{ padding: '20px 24px 10px', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', gap: '14px' }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', flex: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="reality-check-hero" style={{ textAlign: 'center', marginBottom: '24px' }}>
          <div style={{ width: '58px', height: '58px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '50%', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Activity color="var(--accent-danger)" size={32} />
@@ -3187,7 +3186,7 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
       </div>
 
       </div>
-      <div className="onboarding-step-actions" style={{ paddingTop: '6px' }}>
+      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '12px' }}>
         <button className="btn-primary onboarding-step-cta" style={{ width: '100%', padding: '18px', fontSize: '1.05rem' }} onClick={onNext}>
           It's time to change.
         </button>
