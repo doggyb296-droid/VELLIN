@@ -1390,9 +1390,9 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '20px 24px 10px', minHeight: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', gap: '12px' }}
+      style={{ padding: '20px 24px 10px', minHeight: '100dvh', display: 'flex', flexDirection: 'column', textAlign: 'center', gap: '12px', position: 'relative' }}
     >
-      <div className="welcome-step-copy" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div className="welcome-step-copy" style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingBottom: '118px' }}>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -1411,7 +1411,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
           ))}
         </div>
       </div>
-      <div className="onboarding-step-actions" style={{ marginTop: 'auto', paddingTop: '14px', paddingBottom: 0 }}>
+      <div className="onboarding-step-actions" style={{ position: 'absolute', left: '24px', right: '24px', bottom: 'max(14px, calc(env(safe-area-inset-bottom, 0px) + 8px))', marginTop: 0, paddingTop: 0, paddingBottom: 0 }}>
         <button className="btn-primary onboarding-step-cta" onClick={onNext} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {getUiString(languageRegion, 'getStarted')} <ArrowRight size={20} />
         </button>
