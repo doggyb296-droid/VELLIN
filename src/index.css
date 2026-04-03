@@ -1,4 +1,5 @@
 :root {
+  --app-height: 100dvh;
   --bg-color: #1a2742;
   --bg-card: rgba(255, 255, 255, 0.10);
   --card-border: rgba(255, 255, 255, 0.14);
@@ -47,7 +48,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: var(--app-height, 100dvh);
   margin: 0;
   overflow-x: hidden;
   overflow-y: auto;
@@ -111,8 +112,8 @@ body {
 .app-container {
   max-width: 500px;
   margin: 0 auto;
-  min-height: 100svh;
-  height: auto;
+  min-height: var(--app-height, 100dvh);
+  height: var(--app-height, 100dvh);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -143,13 +144,13 @@ body {
   min-height: 0;
 }
 .onboarding-container {
-  min-height: 100dvh;
-  height: 100dvh;
+  min-height: var(--app-height, 100dvh);
+  height: var(--app-height, 100dvh);
 }
 
 .welcome-step {
-  min-height: 100dvh !important;
-  height: 100dvh !important;
+  min-height: var(--app-height, 100dvh) !important;
+  height: var(--app-height, 100dvh) !important;
   justify-content: space-between !important;
 }
 
@@ -613,8 +614,8 @@ body {
 
 @media (max-width: 520px) {
   .welcome-step {
-    min-height: 100dvh !important;
-    height: 100dvh !important;
+    min-height: var(--app-height, 100dvh) !important;
+    height: var(--app-height, 100dvh) !important;
     gap: 8px;
     padding-top: max(12px, env(safe-area-inset-top, 0px) + 6px) !important;
     padding-bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) + 6px)) !important;

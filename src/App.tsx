@@ -4242,6 +4242,24 @@ export default function App() {
   const regionalCopy = useMemo(() => getRegionalUiCopy(resolvedPricingRegion), [resolvedPricingRegion]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const applyViewportHeight = () => {
+      const height = Math.round(window.visualViewport?.height ?? window.innerHeight);
+      document.documentElement.style.setProperty('--app-height', `${height}px`);
+    };
+
+    applyViewportHeight();
+    window.addEventListener('resize', applyViewportHeight);
+    window.visualViewport?.addEventListener('resize', applyViewportHeight);
+
+    return () => {
+      window.removeEventListener('resize', applyViewportHeight);
+      window.visualViewport?.removeEventListener('resize', applyViewportHeight);
+    };
+  }, []);
+
+  useEffect(() => {
     const priceTimer = window.setTimeout(() => {
       const pricing = getLocalizedProPricingForPreference('auto', detectedPricingRegion);
       setLocalizedProPrice(formatLocalizedPrice(pricing));
