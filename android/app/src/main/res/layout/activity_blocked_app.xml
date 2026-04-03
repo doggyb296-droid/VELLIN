@@ -39,14 +39,23 @@
         android:textSize="16sp" />
 
     <Button
-        android:id="@+id/blocked_app_open_button"
+        android:id="@+id/blocked_app_stay_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
         android:backgroundTint="@color/colorAccent"
-        android:text="Return To VELLIN"
+        android:text="Keep Me Focused"
         android:textAllCaps="false"
         android:textColor="#13233D"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/blocked_app_end_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="End Focus In VELLIN"
+        android:textAllCaps="false"
         android:textStyle="bold" />
 
 </LinearLayout>

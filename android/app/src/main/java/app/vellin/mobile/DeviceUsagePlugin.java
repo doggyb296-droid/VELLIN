@@ -219,6 +219,13 @@ public class DeviceUsagePlugin extends Plugin {
         call.resolve(result);
     }
 
+    @PluginMethod
+    public void consumePendingFocusAction(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("action", FocusBlockerStore.consumePendingAction(getContext()));
+        call.resolve(result);
+    }
+
     private String getIconDataUrl(Drawable drawable) {
         try {
             if (drawable == null) return null;

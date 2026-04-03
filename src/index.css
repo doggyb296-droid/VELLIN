@@ -111,7 +111,7 @@ body {
 .app-container {
   max-width: 500px;
   margin: 0 auto;
-  min-height: 100dvh;
+  min-height: 100svh;
   height: auto;
   display: flex;
   flex-direction: column;
@@ -482,7 +482,7 @@ body {
   overflow-x: hidden;
   scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: max(18px, calc(env(safe-area-inset-bottom, 0px) + 10px)) !important;
+  padding-bottom: max(6px, env(safe-area-inset-bottom, 0px)) !important;
 }
 
 .onboarding-static-card {
@@ -600,9 +600,9 @@ body {
 @media (max-width: 520px) {
   .welcome-step {
     justify-content: flex-end !important;
-    gap: 10px;
-    padding-top: max(18px, env(safe-area-inset-top, 0px) + 10px) !important;
-    padding-bottom: max(8px, calc(env(safe-area-inset-bottom, 0px) + 4px)) !important;
+    gap: 8px;
+    padding-top: max(12px, env(safe-area-inset-top, 0px) + 6px) !important;
+    padding-bottom: max(4px, env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .welcome-step-copy {
@@ -635,7 +635,7 @@ body {
   }
 
   .welcome-step .onboarding-step-title {
-    font-size: 1.95rem !important;
+    font-size: 1.9rem !important;
   }
 
   .welcome-step .brand-lockup {
@@ -684,8 +684,8 @@ body {
 
   .auth-screen {
     justify-content: flex-end;
-    padding-top: max(18px, env(safe-area-inset-top, 0px) + 12px);
-    padding-bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) + 6px));
+    padding-top: max(12px, env(safe-area-inset-top, 0px) + 6px);
+    padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
   }
 
   .auth-shell {
@@ -750,17 +750,17 @@ body {
 
   .protocol-step {
     justify-content: flex-end !important;
-    padding-top: max(14px, env(safe-area-inset-top, 0px) + 8px) !important;
+    padding-top: max(10px, env(safe-area-inset-top, 0px) + 4px) !important;
   }
 
   .reality-check-step {
     justify-content: flex-end !important;
-    padding-top: max(14px, env(safe-area-inset-top, 0px) + 8px) !important;
+    padding-top: max(10px, env(safe-area-inset-top, 0px) + 4px) !important;
   }
 
   .usage-access-step-shell {
     justify-content: flex-end !important;
-    padding-top: max(14px, env(safe-area-inset-top, 0px) + 8px) !important;
+    padding-top: max(10px, env(safe-area-inset-top, 0px) + 4px) !important;
   }
 
   .pro-offer-stack {

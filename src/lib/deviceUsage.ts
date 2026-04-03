@@ -24,6 +24,7 @@ interface DeviceUsagePlugin {
   openFocusBlockerSettings(): Promise<void>;
   setFocusBlockConfig(options: { active: boolean; blockedPackages: string[] }): Promise<{ enabled: boolean }>;
   consumeLastBlockedApp(): Promise<{ packageName: string | null; blockedAt: number | null }>;
+  consumePendingFocusAction(): Promise<{ action: string | null }>;
 }
 
 const DeviceUsage = registerPlugin<DeviceUsagePlugin>('DeviceUsage');
@@ -123,6 +124,19 @@ export const consumeLastBlockedApp = async (): Promise<{ packageName: string | n
     };
   } catch {
     return { packageName: null, blockedAt: null };
+  }
+};
+
+export const consumePendingFocusAction = async (): Promise<string | null> => {
+  if (!canUseNativeDeviceUsage()) {
+    return null;
+  }
+
+  try {
+    const result = await DeviceUsage.consumePendingFocusAction();
+    return result.action ?? null;
+  } catch {
+    return null;
   }
 };
 

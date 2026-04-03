@@ -42,6 +42,7 @@ import {
 } from './lib/mobileNotifications';
 import {
   canUseNativeDeviceUsage,
+  consumePendingFocusAction,
   consumeLastBlockedApp,
   getInstalledApps,
   getWeeklyUsageForLabels,
@@ -1385,7 +1386,7 @@ const WelcomeStep = ({ onNext, languageRegion }: { onNext: () => void, languageR
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="onboarding-step onboarding-step-shell welcome-step"
-      style={{ padding: '28px 24px 8px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', textAlign: 'center', gap: '18px' }}
+      style={{ padding: '22px 24px 4px', minHeight: '100svh', height: '100svh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', textAlign: 'center', gap: '12px' }}
     >
       <div className="welcome-step-copy" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '16px', flex: 1 }}>
         <motion.div
@@ -1445,8 +1446,8 @@ const SurveyStep = ({ onNext }: { onNext: (data: string[]) => void }) => {
           onNext(newAnswers);
         }
         selectionTimerRef.current = null;
-      }, 40);
-    }, 110);
+      }, 20);
+    }, 70);
   };
 
   useEffect(() => {
@@ -1517,7 +1518,7 @@ const RecommendationStep = ({ surveyData, onNext }: { surveyData: string[] | nul
       initial={false}
       animate={{ opacity: 1, y: 0 }}
       className="onboarding-step-shell protocol-step"
-      style={{ padding: '28px 24px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', justifyContent: 'flex-end', gap: '18px' }}
+      style={{ padding: '22px 24px 8px', textAlign: 'center', display: 'flex', flexDirection: 'column', minHeight: '100svh', height: '100svh', justifyContent: 'flex-end', gap: '14px' }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '18px', flex: 1 }}>
       <motion.div
@@ -1628,7 +1629,7 @@ const AuthStep = ({
   };
 
   return (
-    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '24px 16px 10px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+    <motion.div initial={false} animate={{ opacity: 1 }} className="app-container auth-screen" style={{ padding: '18px 16px 8px', minHeight: '100svh', height: '100svh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
       <div style={{ display: 'grid', gap: '10px', flex: 1, alignContent: 'end' }}>
       <div className="auth-brand-row">
         <BrandLockup subtitle="Focus infrastructure for real life." compact />
@@ -1936,7 +1937,7 @@ const DeviceUsageAccessStep = ({
   const canMoveForward = isUsageReady && isBlockerReady;
 
   return (
-  <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell usage-access-step-shell" style={{ padding: '24px 24px 12px', minHeight: '100dvh', height: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+  <motion.div initial={false} animate={{ opacity: 1 }} className="app-container onboarding-step-shell usage-access-step-shell" style={{ padding: '18px 24px 8px', minHeight: '100svh', height: '100svh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
     <div style={{ display: 'grid', gap: '16px', flex: 1, alignContent: 'end' }}>
       <BrandLockup subtitle="Screen time insights, explained gently." compact />
       <div className="glass-card" style={{ padding: '24px', display: 'grid', gap: '16px' }}>
@@ -2447,14 +2448,14 @@ const Dashboard = ({ userData, focusScore, isFocusing, onToggleFocus, onTestApp,
   const topAppCount = topAppEntry?.[1] ?? 0;
   const insightFacts = [
     topApp ? `Most interrupted app: ${topApp} (${topAppCount} logged blocks)` : 'Most interrupted app: not enough data yet.',
-    `Pickups logged: ${phonePickups}`,
+    `Blocked attempts logged: ${phonePickups}`,
     `Focus score trend: ${focusScore > 80 ? 'Strong' : focusScore > 50 ? 'Building' : 'Recovery mode'}`
   ];
   const activePlanSummary = proPlan?.summary || `Your latest pattern suggests ${topApp || 'social apps'} is the main pull on your attention. We'll keep lowering friction around that urge window first.`;
   const activePlanSteps = proPlan?.recommendations ?? [
     topApp ? `Reduce ${topApp} in the hour before your usual craving spike.` : 'Reduce your highest-friction app in the evening.',
     `Protect ${Math.max(45, Math.round(dailyGoalSeconds / 120))} minutes of focused time every day.`,
-    `Use your blocklist whenever pickups start climbing past ${Math.max(8, Math.round(phonePickups || 8))}.`
+    `Use your blocklist whenever blocked attempts start climbing past ${Math.max(8, Math.round(phonePickups || 8))}.`
   ];
 
   const formatTimeRange = (time: string, duration: number) => {
@@ -2493,7 +2494,7 @@ const Dashboard = ({ userData, focusScore, isFocusing, onToggleFocus, onTestApp,
             <div className="dashboard-hero-badges">
               <span className="dashboard-hero-badge">{formatPrettyTime(todayReclaimed)} reclaimed today</span>
               <span className="dashboard-hero-badge">{tasks.length} planned tasks</span>
-              <span className="dashboard-hero-badge">{phonePickups} pickups tracked</span>
+              <span className="dashboard-hero-badge">{phonePickups} blocked attempts tracked</span>
             </div>
           </div>
           <div className="score-orb">
@@ -3015,10 +3016,10 @@ const ForecastPage = ({ isPro, onUpgrade, onStartFocus, onAction, blockedByApp, 
           <div className="glass-card forecast-card forecast-deep-dive">
             <div className="section-row">
               <div className="section-title">Deep Research</div>
-              <span className="forecast-insight-pill">{phonePickups} pickups logged</span>
+              <span className="forecast-insight-pill">{phonePickups} blocked attempts logged</span>
             </div>
             <div className="forecast-list">
-              <div>Your cravings build fastest after repeated pickups in the late day and early evening.</div>
+              <div>Your cravings build fastest after repeated blocked-app attempts in the late day and early evening.</div>
               <div>{topApp} is your highest-friction app, which makes it the best candidate for stricter blocking.</div>
               <div>You have reclaimed {totalFocusHours}h of focus so far, with an average of {avgDailyFocus}m on active days.</div>
               <div>Start focus 20-30 minutes before {peakTime} to intercept the strongest urge wave.</div>
@@ -3152,7 +3153,7 @@ const RealityCheckStep = ({ distractions, deviceUsageAccessStatus, weeklyBlocked
       animate={{ opacity: 1, x: 0 }}
       exit={reduceMotion ? undefined : { opacity: 0, x: -12 }}
       className="onboarding-step-shell reality-check-step"
-      style={{ padding: '28px 24px 12px', display: 'flex', flexDirection: 'column', minHeight: '100dvh', height: '100dvh', justifyContent: 'flex-end', gap: '18px' }}
+      style={{ padding: '22px 24px 8px', display: 'flex', flexDirection: 'column', minHeight: '100svh', height: '100svh', justifyContent: 'flex-end', gap: '14px' }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', flex: 1 }}>
       <div className="reality-check-hero" style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -3588,9 +3589,9 @@ const Review = ({ totalReclaimed, todayReclaimed, totalSessions, focusScore, blo
           <div className="review-meta">{avgMinutes}m average per day</div>
         </div>
         <div className="glass-card review-card">
-          <div className="review-label">Phone Pickups</div>
+          <div className="review-label">Blocked Attempts</div>
           <div className="review-value">{phonePickups}</div>
-          <div className="review-meta">{blockedCount} blocks prevented</div>
+          <div className="review-meta">{blockedCount} total blocks prevented</div>
         </div>
         <div className="glass-card review-card">
           <div className="review-label">Sessions</div>
@@ -3637,7 +3638,7 @@ const Review = ({ totalReclaimed, todayReclaimed, totalSessions, focusScore, blo
         <div className="glass-card review-card">
           <div className="section-title">Tracked Distraction Pressure</div>
           <div className="review-insights">
-            <div className="review-insight-item">Logged pickups: {phonePickups}</div>
+            <div className="review-insight-item">Logged blocked attempts: {phonePickups}</div>
             <div className="review-insight-item">Blocked distractions: {blockedCount}</div>
             <div className="review-insight-item">Unique blocked apps: {Object.keys(blockedByApp).length}</div>
             <div className="review-insight-item">Most interrupted app: {topApps[0]?.[0] || 'No data yet'}</div>
@@ -3686,7 +3687,7 @@ const Review = ({ totalReclaimed, todayReclaimed, totalSessions, focusScore, blo
           {(isPro
             ? (proPlan?.recommendations ?? [
               'Craving Forecast is fully unlocked with your behavioral data.',
-              `Your current plan is using ${phonePickups} logged pickups and ${blockedCount} blocked distractions.`,
+              `Your current plan is using ${phonePickups} blocked attempts and ${blockedCount} blocked distractions.`,
               'Your focus plan can now be refreshed any time from the premium tools.'
             ])
             : [
@@ -3736,7 +3737,7 @@ const FriendsPage = ({
 }) => {
   const baseName = userName || accountEmail.split('@')[0] || 'You';
   const savedHours = Number((totalReclaimed / 3600).toFixed(1));
-  const distractionEvents = phonePickups + blockedCount;
+    const distractionEvents = phonePickups + blockedCount;
   const [friendQuery, setFriendQuery] = useState('');
   const [friendNotice, setFriendNotice] = useState<string | null>(null);
   const [friendNoticeTone, setFriendNoticeTone] = useState<'info' | 'success' | 'warning'>('info');
@@ -4299,6 +4300,18 @@ export default function App() {
     setPhonePickups((prev) => prev + 1);
     setBlockedByApp((prev) => ({ ...prev, [blockedLabel]: (prev[blockedLabel] || 0) + 1 }));
   }, [labelForBlockedPackage]);
+  const consumeNativeFocusAction = useCallback(async () => {
+    if (!canUseNativeDeviceUsage() || !Capacitor.isNativePlatform()) return;
+    const action = await consumePendingFocusAction();
+    if (action !== 'end_focus') return;
+    setActiveAutoTaskId(null);
+    setShowBlockScreen(false);
+    setBlockedAppName(null);
+    setIsFocusing(false);
+    setFocusSeconds(0);
+    focusSecondsRef.current = 0;
+    lastBreakReminderAtRef.current = null;
+  }, []);
   useEffect(() => {
     if (!canUseNativeDeviceUsage() || !Capacitor.isNativePlatform()) return;
     let cancelled = false;
@@ -4339,6 +4352,7 @@ export default function App() {
         setDeviceUsageAccessStatus('granted');
       }
       if (!cancelled) {
+        await consumeNativeFocusAction();
         await refreshFocusBlockerStatus();
         await consumeNativeBlockedEvent();
       }
@@ -4360,7 +4374,7 @@ export default function App() {
         void listenerHandle.remove();
       }
     };
-  }, [consumeNativeBlockedEvent, refreshFocusBlockerStatus]);
+  }, [consumeNativeBlockedEvent, consumeNativeFocusAction, refreshFocusBlockerStatus]);
   const scrollVisibleSurfaceToTop = useCallback(() => {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'auto' });
@@ -5803,7 +5817,7 @@ export default function App() {
     const recommendations = [
       `Cap ${bestAppsLine} to a combined ${target} minutes on high-risk days.`,
       `Start one protective focus block 25 minutes before your usual ${cravingWindow} craving spike.`,
-      `Use stricter blocking after ${phonePickups} logged pickups so the habit loop has more friction.`,
+      `Use stricter blocking after ${phonePickups} blocked attempts so the habit loop has more friction.`,
       `Treat ${topApps[0] || 'your top distraction'} as your primary intercept app for the next seven days.`
     ];
     const insights = [
@@ -5824,7 +5838,7 @@ export default function App() {
     ];
 
     return {
-      summary: `VELLIN reviewed ${phonePickups} pickups, ${blockedCount} blocks, and your recent focus history. Your strongest pressure currently clusters around ${cravingWindow}, so this Pro roadmap shifts protection earlier and aims for a ${Math.floor(target / 60)}h ${target % 60}m distraction budget.`,
+      summary: `VELLIN reviewed ${phonePickups} blocked attempts, ${blockedCount} blocks, and your recent focus history. Your strongest pressure currently clusters around ${cravingWindow}, so this Pro roadmap shifts protection earlier and aims for a ${Math.floor(target / 60)}h ${target % 60}m distraction budget.`,
       insights,
       recommendations,
       rituals,
@@ -5938,7 +5952,6 @@ export default function App() {
       setShowBlockScreen(true);
     }
     setBlockedCount(prev => prev + 1);
-    setPhonePickups(prev => prev + 1);
     setBlockedByApp(prev => ({ ...prev, [app]: (prev[app] || 0) + 1 }));
     showToast(`Blocked ${app} -5 Focus Score`);
   };
@@ -6295,7 +6308,7 @@ export default function App() {
           {showRecap && (
             <MilestoneRecapModal achievements={recentUnlocks} onClose={() => { setShowRecap(false); setRecentUnlocks([]); }} />
           )}
-          {showBlockScreen && (
+          {showBlockScreen && !Capacitor.isNativePlatform() && (
             <motion.div key="block" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="block-overlay">
                <ShieldCheck size={80} color="var(--accent-danger)" style={{ marginBottom: '24px' }} />
                <h1>Blocked by VELLIN</h1>

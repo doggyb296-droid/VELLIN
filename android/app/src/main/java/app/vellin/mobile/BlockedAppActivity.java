@@ -18,13 +18,25 @@ public class BlockedAppActivity extends Activity {
         setContentView(R.layout.activity_blocked_app);
 
         TextView subtitleView = findViewById(R.id.blocked_app_subtitle);
-        Button openVellinButton = findViewById(R.id.blocked_app_open_button);
+        TextView titleView = findViewById(R.id.blocked_app_title);
+        Button stayFocusedButton = findViewById(R.id.blocked_app_stay_button);
+        Button endFocusButton = findViewById(R.id.blocked_app_end_button);
 
         String packageName = getIntent() != null ? getIntent().getStringExtra(EXTRA_PACKAGE_NAME) : null;
         String appLabel = resolveAppLabel(packageName);
-        subtitleView.setText(appLabel + " is blocked while your focus session is running.");
+        titleView.setText("Blocked by VELLIN");
+        subtitleView.setText(appLabel + " is blocked right now. Protect the focus streak and keep moving.");
 
-        openVellinButton.setOnClickListener((view) -> {
+        stayFocusedButton.setOnClickListener((view) -> {
+            Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+            homeIntent.addCategory(Intent.CATEGORY_HOME);
+            homeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(homeIntent);
+            finish();
+        });
+
+        endFocusButton.setOnClickListener((view) -> {
+            FocusBlockerStore.requestEndFocus(this);
             Intent launchIntent = new Intent(this, MainActivity.class);
             launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(launchIntent);

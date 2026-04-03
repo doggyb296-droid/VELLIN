@@ -18,6 +18,8 @@ public final class FocusBlockerStore {
     public static final String KEY_LAST_BLOCKED_AT = "last_blocked_at";
     public static final String KEY_LAST_INTERCEPTED_PACKAGE = "last_intercepted_package";
     public static final String KEY_LAST_INTERCEPTED_ELAPSED = "last_intercepted_elapsed";
+    public static final String KEY_PENDING_ACTION = "pending_action";
+    public static final String ACTION_END_FOCUS = "end_focus";
 
     private FocusBlockerStore() {}
 
@@ -69,5 +71,23 @@ public final class FocusBlockerStore {
         editor.remove(KEY_LAST_BLOCKED_PACKAGE);
         editor.remove(KEY_LAST_BLOCKED_AT);
         editor.apply();
+    }
+
+    public static void requestEndFocus(Context context) {
+        SharedPreferences.Editor editor = getPreferences(context).edit();
+        editor.putBoolean(KEY_ACTIVE, false);
+        editor.putString(KEY_PENDING_ACTION, ACTION_END_FOCUS);
+        editor.apply();
+    }
+
+    public static String consumePendingAction(Context context) {
+        SharedPreferences preferences = getPreferences(context);
+        String action = preferences.getString(KEY_PENDING_ACTION, null);
+        if (action == null) {
+            return null;
+        }
+
+        preferences.edit().remove(KEY_PENDING_ACTION).apply();
+        return action;
     }
 }
